@@ -75,16 +75,74 @@ resource "google_container_cluster" "primary" {
 }
 
 resource "google_container_node_pool" "primary_preemptible_nodes" {
-  name       = var.nodepool_name
+  name       = var.additional_nodepool_name
   location   = var.region
   cluster    = google_container_cluster.primary.name
   node_count = 1
   node_locations = [var.zone]
   node_config {
   preemptible  = true
-  machine_type = "n2-standard-8"
+  machine_type = "e2-small"
+  labels = {"purpose" = "additional"}
   disk_type = "pd-standard"
-  disk_size_gb = 600
+  disk_size_gb = 20
+  oauth_scopes    = [
+   "https://www.googleapis.com/auth/cloud-platform"
+   ]
+  }
+  depends_on = [google_container_cluster.primary]
+}
+
+resource "google_container_node_pool" "webserver_nodepool" {
+  name       = var.webserver_nodepool_name
+  location   = var.region
+  cluster    = google_container_cluster.primary.name
+  node_count = 1
+  node_locations = [var.zone]
+  node_config {
+  preemptible  = true
+  machine_type = "custom-4-3840"
+  labels = {"purpose" = "webserver"}
+  disk_type = "pd-standard"
+  disk_size_gb = 20
+  oauth_scopes    = [
+   "https://www.googleapis.com/auth/cloud-platform"
+   ]
+  }
+  depends_on = [google_container_cluster.primary]
+}
+
+resource "google_container_node_pool" "worker_nodepool" {
+  name       = var.worker_nodepool_name
+  location   = var.region
+  cluster    = google_container_cluster.primary.name
+  node_count = 1
+  node_locations = [var.zone]
+  node_config {
+  preemptible  = true
+  machine_type = "custom-4-6144"
+  labels = {"purpose" = "worker"}
+  disk_type = "pd-standard"
+  disk_size_gb = 20
+  oauth_scopes    = [
+   "https://www.googleapis.com/auth/cloud-platform"
+   ]
+  }
+  depends_on = [google_container_cluster.primary]
+}
+
+resource "google_container_node_pool" "scheduler_nodepool" {
+  name       = var.scheduler_nodepool_name
+  location   = var.region
+  cluster    = google_container_cluster.primary.name
+  node_count = 1
+  node_locations = [var.zone]
+  node_config {
+  preemptible  = true
+  machine_type = "e2-small"
+  labels = {"purpose" = "scheduler"}
+  disk_type = "pd-standard"
+  disk_size_gb = 20
   oauth_scopes    = [
    "https://www.googleapis.com/auth/cloud-platform"
    ]
