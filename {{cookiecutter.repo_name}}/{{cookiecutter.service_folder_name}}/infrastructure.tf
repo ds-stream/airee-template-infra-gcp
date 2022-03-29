@@ -82,7 +82,7 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
   node_locations = [var.zone]
   node_config {
   preemptible  = true
-  machine_type = "e2-small"
+  machine_type = "custom-4-3840"
   labels = {"purpose" = "additional"}
   disk_type = "pd-standard"
   disk_size_gb = 20
