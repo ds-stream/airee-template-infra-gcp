@@ -1,11 +1,11 @@
 {
     "repo_name": "repo name",
-    "service_folder_name": "service",
-    "storage_folder_name": "storage",
-    "project_id": ["dsstream-airflowk8s", "another_project_id"],
+    "service_folder_name": ["service"],
+    "storage_folder_name": ["storage"],
+    "project_id": ["dsstream-airflowk8s"],
     "region": ["us-central1","us-west1", "europe-central1", "asia-east1"],
     "zone": ["{{cookiecutter.region}}-a", "{{cookiecutter.region}}-b", "{{cookiecutter.region}}-c"],
-    "network_name": ["airflow-network", "network-2", "network-3"],
+    "network_name": ["airflow-network", "airflow-network-2", "airflow-network-3"],
     "database_instance_name": "aiflow-database",
     "cluster_name": "airflow-cluster",
     "_namespace": "airflow"
