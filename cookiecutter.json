@@ -8,7 +8,10 @@
     "network_name": ["airflow-network", "network-2", "network-3"],
     "database_instance_name": "aiflow-database",
     "cluster_name": "airflow-cluster",
+    "_nodeSelectorPurposeAdditional": "additional",
+    "_nodeSelectorPurposeWorker": "worker",
+    "_nodeSelectorPurposeWebserver": "webserver",
+    "_nodeSelectorPurposeScheduler": "scheduler",
     "_namespace": "airflow"
 }
-
 

@@ -30,9 +30,19 @@ variable "postgres_database_name" {
   default     = "airflow_db"
 }
 #################################################
-variable "nodepool_name" {
-  default     = "my-node-pool"
+variable "additional_nodepool_name" {
+  default     = "{{cookiecutter._nodeSelectorPurposeAdditional}}"
 }
+variable "webserver_nodepool_name" {
+  default     = "{{cookiecutter._nodeSelectorPurposeWebserver}}"
+}
+variable "worker_nodepool_name" {
+  default     = "{{cookiecutter._nodeSelectorPurposeWorker}}"
+}
+variable "scheduler_nodepool_name" {
+  default     = "{{cookiecutter._nodeSelectorPurposeScheduler}}"
+}
+#################################################
 variable "cluster_name" {
   default     = "{{cookiecutter.cluster_name}}"
 }
