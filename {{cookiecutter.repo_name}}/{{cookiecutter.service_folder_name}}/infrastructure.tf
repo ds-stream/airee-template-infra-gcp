@@ -139,7 +139,7 @@ resource "google_container_node_pool" "scheduler_nodepool" {
   node_locations = [var.zone]
   node_config {
   preemptible  = true
-  machine_type = "e2-small"
+  machine_type = "e2-medium"
   labels = {"purpose" = "scheduler"}
   disk_type = "pd-standard"
   disk_size_gb = 20
