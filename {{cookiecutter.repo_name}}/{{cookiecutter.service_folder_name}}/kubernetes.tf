@@ -15,17 +15,17 @@ resource "kubernetes_namespace" "airflow_cluster" {
 
 resource "kubernetes_config_map" "airflow_cluster" {
   metadata {
-    name = "postgres-config"
+    name      = "postgres-config"
     namespace = var.namespace
     labels = {
-        app = "airflow-postgres"
+      app = "airflow-postgres"
     }
   }
 
   data = {
-    POSTGRES_HOST = "${google_sql_database_instance.instance.private_ip_address}"
-    POSTGRES_DB = "airflow_db"
-    POSTGRES_USER = "airflow"
+    POSTGRES_HOST     = "${google_sql_database_instance.instance.private_ip_address}"
+    POSTGRES_DB       = "airflow_db"
+    POSTGRES_USER     = "airflow"
     POSTGRES_PASSWORD = "airflow"
   }
   depends_on = [
