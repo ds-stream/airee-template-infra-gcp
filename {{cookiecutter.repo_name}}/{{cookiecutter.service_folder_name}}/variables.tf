@@ -33,33 +33,49 @@ variable "postgres_database_name" {
 variable "additional_nodepool" {
   type = map(any)
   default = {
-    name         = "additional"
+    name         = "{{cookiecutter._nodeSelectorPurposeAdditional}}"
     node_count   = 1
-    machine_type = "custom-4-3840"
+    machine_type = "custom-2-4096"
+    taint        = "{{cookiecutter._nodeSelectorPurposeAdditional}}"
   }
 }
 variable "webserver_nodepool" {
   type = map(any)
   default = {
-    name         = "webserver"
+    name         = "{{cookiecutter._nodeSelectorPurposeWebserver}}"
     node_count   = 1
-    machine_type = "custom-4-3840"
+    {% if cookiecutter.airflow_performance == 'small' -%}
+    machine_type = "e2-medium"
+    {% elif cookiecutter.airflow_performance == 'standard' -%}
+    machine_type = "custom-2-4096"
+    {% elif cookiecutter.airflow_performance == 'large' -%}
+    machine_type = "custom-2-4096"
+    {%- endif %}
+    taint        = "{{cookiecutter._nodeSelectorPurposeWebserver}}"
   }
 }
 variable "worker_nodepool" {
   type = map(any)
   default = {
-    name         = "worker"
+    name         = "{{cookiecutter._nodeSelectorPurposeWorker}}"
     node_count   = 1
     machine_type = "custom-4-6144"
+    taint        = "{{cookiecutter._nodeSelectorPurposeWorker}}"
   }
 }
 variable "scheduler_nodepool" {
   type = map(any)
   default = {
-    name         = "scheduler"
+    name         = "{{cookiecutter._nodeSelectorPurposeScheduler}}"
     node_count   = 1
+    {% if cookiecutter.airflow_performance == 'small' -%}
     machine_type = "e2-medium"
+    {% elif cookiecutter.airflow_performance == 'standard' -%}
+    machine_type = "custom-2-4096"
+    {% elif cookiecutter.airflow_performance == 'large' -%}
+    machine_type = "custom-2-4096"
+    {%- endif %}
+    taint        = "{{cookiecutter._nodeSelectorPurposeScheduler}}"
   }
 }
 #################################################
