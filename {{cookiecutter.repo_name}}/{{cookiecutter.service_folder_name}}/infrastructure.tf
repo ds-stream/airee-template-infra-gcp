@@ -84,11 +84,6 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
     preemptible  = true
     machine_type = var.additional_nodepool["machine_type"]
     labels       = { "purpose" = var.additional_nodepool["name"] }
-    taint {
-        key = "purpose"
-        value = var.additional_nodepool["name"]
-        effect = "NO_SCHEDULE"
-      }
     disk_type    = "pd-standard"
     disk_size_gb = 20
     oauth_scopes = [
@@ -156,6 +151,11 @@ resource "google_container_node_pool" "scheduler_nodepool" {
     preemptible  = true
     machine_type = var.scheduler_nodepool["machine_type"]
     labels       = { "purpose" = var.scheduler_nodepool["name"] }
+    taint {
+        key = "purpose"
+        value = var.scheduler_nodepool["name"]
+        effect = "NO_SCHEDULE"
+      }
     disk_type    = "pd-standard"
     disk_size_gb = 20
     oauth_scopes = [
