@@ -35,8 +35,7 @@ variable "additional_nodepool" {
   default = {
     name         = "{{cookiecutter._nodeSelectorPurposeAdditional}}"
     node_count   = 1
-    machine_type = "custom-2-4096"
-    taint        = "{{cookiecutter._nodeSelectorPurposeAdditional}}"
+    machine_type = "custom-4-4096"
   }
 }
 variable "webserver_nodepool" {
