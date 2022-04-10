@@ -1,0 +1,11 @@
+name: Sync infrastructure CI/CD
+on: push
+
+jobs:
+  sync_infrastructure:
+    runs-on: self-hosted
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: bash sync_cloud.sh
+      run: bash sync_cloud.sh
