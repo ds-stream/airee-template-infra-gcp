@@ -84,3 +84,49 @@ variable "cluster_name" {
 variable "namespace" {
   default = "airflow"
 }
+
+##### FLUX
+
+# put as a os env 
+# export TF_VAR_github_token=<token>
+variable "github_token" {
+  description = "token for github"
+  type        = string
+}
+
+variable "repository_name" {
+  description = "repository name"
+  type        = string
+  # Add to cookiecutter
+  default = "{{cookiecutter.workspace}}_app_{{cookiecutter.env}}"
+}
+
+variable "organization" {
+  description = "organization"
+  type        = string
+  default = "{{cookiecutter.org}}"
+}
+
+variable "branch" {
+  description = "branch"
+  type        = string
+  default     = "main"
+}
+
+variable "target_path" {
+  type        = string
+  description = "Relative path to the Git repository root where the sync manifests are committed."
+  default = "flux/"
+}
+
+variable "flux_namespace" {
+  type        = string
+  default     = "flux-system"
+  description = "the flux namespace"
+}
+
+variable "github_deploy_key_title" {
+  type        = string
+  description = "Name of github deploy key"
+  default = "flux_key"
+}

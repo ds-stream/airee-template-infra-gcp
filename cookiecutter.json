@@ -13,6 +13,9 @@
     "_nodeSelectorPurposeWorker": "worker",
     "_nodeSelectorPurposeWebserver": "webserver",
     "_nodeSelectorPurposeScheduler": "scheduler",
-    "_namespace": "airflow"
+    "_namespace": "airflow",
+    "workspace": "test",
+    "env": "dev",
+    "org": "DsAirKube"
 }
 
