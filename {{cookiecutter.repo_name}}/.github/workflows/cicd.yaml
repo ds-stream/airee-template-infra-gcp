@@ -11,3 +11,13 @@ jobs:
       env: 
         TF_VAR_github_token: {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %}
       run: bash sync_cloud.sh
+    - name: authorize gcp
+      run: gcloud auth activate-service-account ${GOOGLE_IMPERSONATE_SERVICE_ACCOUNT} --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+    - name: set default project
+      run: gcloud config set project "{{cookiecutter.project_id}}"
+    - name: check kubernetes connection
+      run: gcloud container clusters get-credentials "{{cookiecutter.cluster_name}}" --region "{{cookiecutter.region}}" --project "{{cookiecutter.project_id}}"
+    - name: check webserver ip
+      run: sleep 60 && kubectl get service airflow-webserver -n airflow
+      env: 
+        TF_VAR_github_token: ${{ secrets.TF_VAR_github_token }}
