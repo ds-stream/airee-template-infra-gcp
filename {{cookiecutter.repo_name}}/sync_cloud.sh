@@ -11,6 +11,7 @@ if [ "${status}" == "up" ]; then
 	cd service && terraform init && terraform apply --auto-approve
 elif [ "${status}" == "down" ]; then
         gcloud container clusters get-credentials ${CLUSTER_NAME} --region ${REGION} --project ${GCP_PROJECT} && \
+	gcloud container clusters delete ${CLUSTER_NAME} --region ${REGION} --project ${GCP_PROJECT} && \
 	cd service && terraform init && sh ../destroy_infra.sh
 else 
      echo "Json status does not allow to apply changes"
