@@ -8,4 +8,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
     - name: bash sync_cloud.sh
+      env: 
+        TF_VAR_github_token: {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %}
       run: bash sync_cloud.sh
