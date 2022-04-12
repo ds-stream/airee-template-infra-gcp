@@ -11,7 +11,7 @@ resource "google_compute_network" "private_network" {
 resource "google_compute_global_address" "private_ip_address" {
   provider      = google-beta
   project       = var.project_id
-  name          = "private-ip-address"
+  name          = var.private-ip-address_name
   purpose       = "VPC_PEERING"
   address_type  = "INTERNAL"
   prefix_length = 16

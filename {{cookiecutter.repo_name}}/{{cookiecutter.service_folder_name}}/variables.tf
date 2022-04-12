@@ -19,6 +19,10 @@ variable "zone" {
 variable "private_network_name" {
   default = "{{cookiecutter.network_name}}-{{cookiecutter.workspace}}"
 }
+variable "private-ip-address_name" {
+  default = "private-ip-address-{{cookiecutter.workspace}}"
+}
+
 #################################################
 variable "database_instance_name" {
   default = "{{cookiecutter.database_instance_name}}-{{cookiecutter.workspace}}"
