@@ -8,7 +8,7 @@ gcloud config set project ${GCP_PROJECT}
 
 #sync infr
 if [ "${status}" == "up" ]; then
-	cd service && terraform init && terraform apply --auto-approve
+	cd service && terraform init && terraform apply --auto-approve && sleep 60 && kubectl get service airflow-webserver -n airflow
 elif [ "${status}" == "down" ]; then
 	cd service && terraform init && sh ../destroy_infra.sh
 else 
