@@ -103,11 +103,20 @@ resource "google_container_node_pool" "webserver_nodepool" {
     preemptible  = true
     machine_type = var.webserver_nodepool["machine_type"]
     labels       = { "purpose" = var.webserver_nodepool["name"] }
+    {% if cookiecutter.airflow_performance == 'small' -%}
+    {% elif cookiecutter.airflow_performance == 'standard' -%}
     taint {
-        key = "purpose"
-        value = var.webserver_nodepool["name"]
-        effect = "NO_SCHEDULE"
-      }
+            key = "purpose"
+            value = var.webserver_nodepool["name"]
+            effect = "NO_SCHEDULE"
+          }
+    {% elif cookiecutter.airflow_performance == 'large' -%}
+    taint {
+            key = "purpose"
+            value = var.webserver_nodepool["name"]
+            effect = "NO_SCHEDULE"
+          }
+    {%- endif %}
     disk_type    = "pd-standard"
     disk_size_gb = 20
     oauth_scopes = [
@@ -127,11 +136,26 @@ resource "google_container_node_pool" "worker_nodepool" {
     preemptible  = true
     machine_type = var.worker_nodepool["machine_type"]
     labels       = { "purpose" = var.worker_nodepool["name"]}
+    {% if cookiecutter.airflow_performance == 'micro' -%}
+    {% elif cookiecutter.airflow_performance == 'small' -%}
     taint {
-        key = "purpose"
-        value = var.worker_nodepool["name"]
-        effect = "NO_SCHEDULE"
-      }
+            key = "purpose"
+            value = var.worker_nodepool["name"]
+            effect = "NO_SCHEDULE"
+          }
+    {% elif cookiecutter.airflow_performance == 'standard' -%}
+    taint {
+            key = "purpose"
+            value = var.worker_nodepool["name"]
+            effect = "NO_SCHEDULE"
+          }
+    {% elif cookiecutter.airflow_performance == 'large' -%}
+    taint {
+            key = "purpose"
+            value = var.worker_nodepool["name"]
+            effect = "NO_SCHEDULE"
+          }
+    {%- endif %}
     disk_type    = "pd-standard"
     disk_size_gb = 20
     oauth_scopes = [
@@ -151,11 +175,20 @@ resource "google_container_node_pool" "scheduler_nodepool" {
     preemptible  = true
     machine_type = var.scheduler_nodepool["machine_type"]
     labels       = { "purpose" = var.scheduler_nodepool["name"] }
+    {% if cookiecutter.airflow_performance == 'small' -%}
+    {% elif cookiecutter.airflow_performance == 'standard' -%}
     taint {
-        key = "purpose"
-        value = var.scheduler_nodepool["name"]
-        effect = "NO_SCHEDULE"
-      }
+            key = "purpose"
+            value = var.scheduler_nodepool["name"]
+            effect = "NO_SCHEDULE"
+          }
+    {% elif cookiecutter.airflow_performance == 'large' -%}
+    taint {
+            key = "purpose"
+            value = var.scheduler_nodepool["name"]
+            effect = "NO_SCHEDULE"
+          }
+    {%- endif %}
     disk_type    = "pd-standard"
     disk_size_gb = 20
     oauth_scopes = [
