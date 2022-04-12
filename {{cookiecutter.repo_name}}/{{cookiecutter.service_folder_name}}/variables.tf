@@ -17,11 +17,11 @@ variable "zone" {
 }
 #################################################
 variable "private_network_name" {
-  default = "{{cookiecutter.network_name}}"
+  default = "{{cookiecutter.network_name}}-{{cookiecutter.workspace}}"
 }
 #################################################
 variable "database_instance_name" {
-  default = "{{cookiecutter.database_instance_name}}"
+  default = "{{cookiecutter.database_instance_name}}-{{cookiecutter.workspace}}"
 }
 variable "database_instance_version" {
   default = "POSTGRES_13"
@@ -79,7 +79,7 @@ variable "scheduler_nodepool" {
 }
 #################################################
 variable "cluster_name" {
-  default = "{{cookiecutter.cluster_name}}"
+  default = "{{cookiecutter.cluster_name}}-{{cookiecutter.workspace}}"
 }
 variable "namespace" {
   default = "airflow"
