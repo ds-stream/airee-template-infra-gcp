@@ -17,11 +17,11 @@ jobs:
       run: gcloud config set project "{{cookiecutter.project_id}}"
     - name: configure kubernetes connection
       run: gcloud container clusters get-credentials "{{cookiecutter.cluster_name}}-{{cookiecutter.workspace}}" --region "{{cookiecutter.region}}" --project "{{cookiecutter.project_id}}"
-    #- name: Find webserver ip
-    #  run: |
-    #    echo "WEBSERVER_URL=$(kubectl get service airflow-webserver -n airflow -o jsonpath="{.status.loadBalancer.ingress[0].ip}:{.spec.ports[0].port}")" >> $GITHUB_ENV
-    #- name: Show link to webserver
-    #  run: echo "http://${{ env.WEBSERVER_URL }}"
-    #- name: Check health cluster
-    #  run: |
-    #    curl "http://${{ env.WEBSERVER_URL }}/api/v1/health" -H "content-type: application/json"
+    - name: Find webserver ip
+      run: |
+        echo "WEBSERVER_URL=$(kubectl get service airflow-webserver -n airflow -o jsonpath="{.status.loadBalancer.ingress[0].ip}:{.spec.ports[0].port}")" >> $GITHUB_ENV
+    - name: Show link to webserver
+      run: {% raw %} echo "http://${{ env.WEBSERVER_URL }}" {% endraw %}
+    - name: Check health cluster
+      run: |
+        {% raw %} curl "http://${{ env.WEBSERVER_URL }}/api/v1/health" -H "content-type: application/json" {% endraw %}
