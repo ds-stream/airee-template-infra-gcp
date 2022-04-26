@@ -22,6 +22,17 @@ jobs:
         echo "WEBSERVER_URL=$(kubectl get service airflow-webserver -n airflow -o jsonpath="{.status.loadBalancer.ingress[0].ip}:{.spec.ports[0].port}")" >> $GITHUB_ENV
     - name: Show link to webserver
       run: {% raw %} echo "http://${{ env.WEBSERVER_URL }}" {% endraw %}
-    - name: Check health cluster
+    - name: check pods
       run: |
-        {% raw %} curl "http://${{ env.WEBSERVER_URL }}/api/v1/health" -H "content-type: application/json" {% endraw %}
+         for i in pgbouncer airflow-redis airflow-scheduler airflow-webserver airflow-worker ; do kubectl wait --for=condition=ready pods -n airflow -l app=$i ; done
+    - name: script
+      run: |
+         repeat="true"
+         while ${repeat} ; do
+         {% raw %} CHECK=`timeout 300 curl -s "http://${{ env.WEBSERVER_URL }}/api/v1/health" -H "content-type: application/json" | grep -w healthy | wc -l` {% endraw %}
+         if [ ${CHECK} -eq 2 ] ; then
+          echo "cluster is healthy" ; repeat="false"
+         else
+          echo "cluster is not healthy yet" ; sleep 10 ;
+         fi
+         done
