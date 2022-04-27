@@ -177,4 +177,5 @@ resource "google_compute_disk" "nfs-disk" {
   zone  = var.zone
   size  = var.nfs_disk["size"]
   physical_block_size_bytes = 4096
+  depends_on = [google_container_cluster.primary]
 }
