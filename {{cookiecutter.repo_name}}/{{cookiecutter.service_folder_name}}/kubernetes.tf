@@ -67,6 +67,22 @@ resource "kubernetes_config_map" "airflow_cluster" {
 # Flux
 provider "flux" {}
 
+locals {
+    autolog = <<EOT
+patches:
+- target:
+    version: v1
+    group: apps
+    kind: Deployment
+    name: image-reflector-controller
+    namespace: flux-system
+  patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: --gcp-autologin-for-gcr
+EOT
+}
+
 
 data "flux_install" "main" {
   target_path      = var.target_path
@@ -185,7 +201,7 @@ resource "github_repository_file" "sync" {
 resource "github_repository_file" "kustomize" {
   repository          = var.repository_name
   file                = data.flux_sync.main.kustomize_path
-  content             = data.flux_sync.main.kustomize_content
+  content             = "${data.flux_sync.main.kustomize_content}${local.autolog}"
   branch              = var.branch
   overwrite_on_create = true
 }
@@ -195,5 +211,5 @@ resource "github_repository_deploy_key" "flux" {
   title      = var.github_deploy_key_title
   repository = data.github_repository.main.name
   key        = tls_private_key.github_deploy_key.public_key_openssh
-  read_only  = true
+  read_only  = false
 }
