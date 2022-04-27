@@ -41,7 +41,7 @@ variable "additional_nodepool" {
     {% if cookiecutter.airflow_performance == 'small' -%}
     node_count   = 0
     {% elif cookiecutter.airflow_performance == 'standard' -%}
-    node_count   = 1
+    node_count   = 0
     {% elif cookiecutter.airflow_performance == 'large' -%}
     node_count   = 1
     {%- endif %}
@@ -57,7 +57,7 @@ variable "webserver_nodepool" {
     {% if cookiecutter.airflow_performance == 'small' -%}
     machine_type = "custom-4-5120"
     {% elif cookiecutter.airflow_performance == 'standard' -%}
-    machine_type = "custom-2-4096"
+    machine_type = "custom-4-6144"
     {% elif cookiecutter.airflow_performance == 'large' -%}
     machine_type = "custom-2-4096"
     taint        = "{{cookiecutter._nodeSelectorPurposeWebserver}}"
@@ -74,10 +74,10 @@ variable "worker_nodepool" {
     machine_type = "custom-4-12288"
     {% elif cookiecutter.airflow_performance == 'standard' -%}
     node_count   = 1
-    machine_type = "custom-2-4096"
+    machine_type = "custom-6-12288"
     {% elif cookiecutter.airflow_performance == 'large' -%}
     node_count   = 1
-    machine_type = "custom-2-4096"
+    machine_type = "custom-6-12288"
     {%- endif %}
   }
 }
@@ -89,7 +89,7 @@ variable "scheduler_nodepool" {
     node_count   = 0
     machine_type = "e2-medium"
     {% elif cookiecutter.airflow_performance == 'standard' -%}
-    node_count   = 1
+    node_count   = 0
     machine_type = "custom-2-4096"
     {% elif cookiecutter.airflow_performance == 'large' -%}
     node_count   = 1
@@ -106,7 +106,17 @@ variable "cluster_name" {
 variable "namespace" {
   default = "airflow"
 }
-
+#################################################
+variable "nfs_disk" {
+  type = map(any)
+  default = {
+    name  = "nfs-disk-{{cookiecutter.workspace}}"
+    type  = "pd-standard"
+    size  = 10
+    
+    
+  }
+}
 ##### FLUX
 
 # put as a os env 
