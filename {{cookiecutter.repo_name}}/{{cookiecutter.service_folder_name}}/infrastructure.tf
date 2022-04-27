@@ -84,8 +84,6 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
     preemptible  = true
     machine_type = var.additional_nodepool["machine_type"]
     labels       = { "purpose" = var.additional_nodepool["name"] }
-    disk_type    = "pd-standard"
-    disk_size_gb = 20
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform"
     ]
@@ -103,22 +101,6 @@ resource "google_container_node_pool" "webserver_nodepool" {
     preemptible  = true
     machine_type = var.webserver_nodepool["machine_type"]
     labels       = { "purpose" = var.webserver_nodepool["name"] }
-    {% if cookiecutter.airflow_performance == 'small' -%}
-    {% elif cookiecutter.airflow_performance == 'standard' -%}
-    taint {
-            key = "purpose"
-            value = var.webserver_nodepool["name"]
-            effect = "NO_SCHEDULE"
-          }
-    {% elif cookiecutter.airflow_performance == 'large' -%}
-    taint {
-            key = "purpose"
-            value = var.webserver_nodepool["name"]
-            effect = "NO_SCHEDULE"
-          }
-    {%- endif %}
-    disk_type    = "pd-standard"
-    disk_size_gb = 20
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform"
     ]
@@ -156,8 +138,6 @@ resource "google_container_node_pool" "worker_nodepool" {
             effect = "NO_SCHEDULE"
           }
     {%- endif %}
-    disk_type    = "pd-standard"
-    disk_size_gb = 20
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform"
     ]
@@ -177,11 +157,6 @@ resource "google_container_node_pool" "scheduler_nodepool" {
     labels       = { "purpose" = var.scheduler_nodepool["name"] }
     {% if cookiecutter.airflow_performance == 'small' -%}
     {% elif cookiecutter.airflow_performance == 'standard' -%}
-    taint {
-            key = "purpose"
-            value = var.scheduler_nodepool["name"]
-            effect = "NO_SCHEDULE"
-          }
     {% elif cookiecutter.airflow_performance == 'large' -%}
     taint {
             key = "purpose"
@@ -189,11 +164,17 @@ resource "google_container_node_pool" "scheduler_nodepool" {
             effect = "NO_SCHEDULE"
           }
     {%- endif %}
-    disk_type    = "pd-standard"
-    disk_size_gb = 20
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform"
     ]
   }
   depends_on = [google_container_cluster.primary]
+}
+
+resource "google_compute_disk" "nfs-disk" {
+  name  = var.nfs_disk["name"]
+  type  = var.nfs_disk["type"]
+  zone  = var.zone
+  size  = var.nfs_disk["size"]
+  physical_block_size_bytes = 4096
 }
