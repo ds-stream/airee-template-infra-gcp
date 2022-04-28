@@ -1,0 +1,38 @@
+name: Sync infrastructure CI/CD
+on: push
+
+jobs:
+  sync_infrastructure:
+    runs-on: self-hosted
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: bash sync_cloud.sh
+      env: 
+        TF_VAR_github_token: {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %}
+      run: bash sync_cloud.sh
+    - name: authorize gcp
+      run: gcloud auth activate-service-account ${GOOGLE_IMPERSONATE_SERVICE_ACCOUNT} --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+    - name: set default project
+      run: gcloud config set project "{{cookiecutter.project_id}}"
+    - name: configure kubernetes connection
+      run: gcloud container clusters get-credentials "{{cookiecutter.cluster_name}}-{{cookiecutter.workspace}}" --region "{{cookiecutter.region}}" --project "{{cookiecutter.project_id}}"
+    - name: Find webserver ip
+      run: |
+        echo "WEBSERVER_URL=$(kubectl get service airflow-webserver -n airflow -o jsonpath="{.status.loadBalancer.ingress[0].ip}:{.spec.ports[0].port}")" >> $GITHUB_ENV
+    - name: Show link to webserver
+      run: {% raw %} echo "http://${{ env.WEBSERVER_URL }}" {% endraw %}
+    - name: check pods
+      run: |
+         for i in pgbouncer airflow-redis airflow-scheduler airflow-webserver airflow-worker ; do kubectl wait --for=condition=ready pods -n airflow -l app=$i ; done
+    - name: script
+      run: |
+         repeat="true"
+         while ${repeat} ; do
+         {% raw %} CHECK=`timeout 300 curl -s "http://${{ env.WEBSERVER_URL }}/api/v1/health" -H "content-type: application/json" | grep -w healthy | wc -l` {% endraw %}
+         if [ ${CHECK} -eq 2 ] ; then
+          echo "cluster is healthy" ; repeat="false"
+         else
+          echo "cluster is not healthy yet" ; sleep 10 ;
+         fi
+         done

@@ -1,3 +1,6 @@
 {
+  "GCP_PROJECT": "{{cookiecutter.project_id}}",
+  "CLUSTER_NAME": "{{cookiecutter.cluster_name}}-{{cookiecutter.workspace}}",
+  "REGION": "{{cookiecutter.region}}",	
   "status": "up"
 }
