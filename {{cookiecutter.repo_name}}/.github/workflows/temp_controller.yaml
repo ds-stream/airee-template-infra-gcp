@@ -22,8 +22,6 @@ jobs:
         -d '{"ref":"main"}'
         }
 
-        if [ "${status}" == "up" ]; then
-	        trigger_workflow "cicdsetup.yaml" && echo "Setting up the cluster has been started"
-        else
-	        trigger_workflow "cicddestroy.yaml" && echo "Destroying the cluster has been started"
+        if [ "${status}" == "up" ]; then trigger_workflow "cicdsetup.yaml" && echo "Setting up the cluster has been started"
+        else trigger_workflow "cicddestroy.yaml" && echo "Destroying the cluster has been started"
         fi
