@@ -1,8 +1,9 @@
-name: Sync infrastructure CI/CD
-on: push
+name: Set up infrastructure CI/CD
+on:
+  workflow_dispatch:
 
 jobs:
-  sync_infrastructure:
+  set_up_infra:    
     runs-on: self-hosted
     steps:
     - name: Checkout repository
