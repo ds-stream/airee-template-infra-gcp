@@ -14,3 +14,4 @@ elif [ "${status}" == "down" ]; then
 	cd service && terraform init && sh ../destroy_infra.sh
 else 
      echo "Json status does not allow to apply changes"
+fi
