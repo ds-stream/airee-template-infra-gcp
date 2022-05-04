@@ -29,11 +29,16 @@ jobs:
     - name: check webserver health
       run: |
          repeat="true"
+         wait_s=10
+         max_retries=30
          while ${repeat} ; do
          {% raw %} CHECK=`timeout 300 curl -s "http://${{ env.WEBSERVER_URL }}/api/v1/health" -H "content-type: application/json" | grep -w healthy | wc -l` {% endraw %}
          if [ ${CHECK} -eq 2 ] ; then
           echo "cluster is healthy" ; repeat="false"
          else
-          echo "cluster is not healthy yet" ; sleep 10 ;
+         ((i=i+1)) && echo "check number ${i} - cluster is not healthy yet" ; sleep ${wait_s}
+          if [ ${i} -eq ${max_retries} ] ; then
+                echo "The maximum number of retries has been reached" && exit 1
+          fi
          fi
          done
