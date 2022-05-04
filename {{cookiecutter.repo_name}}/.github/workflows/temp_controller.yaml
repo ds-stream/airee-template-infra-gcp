@@ -1,27 +1,27 @@
-#name: Temp controller
-#on: 
-#  push:
-#
-#env:
-#  USER: AireeApp1
-#
-#jobs:
-#  sync_infrastructure:
-#    runs-on: self-hosted
-#    steps:
-#    - name: Checkout repository
-#      uses: actions/checkout@v3
-#    - name: decide what to do
-#      run: |
-#        for env in $(cat status.json | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" ); do export $env; done
-#
-#        trigger_workflow () {
-#        curl -X POST -u ${USER}:${PAT_TOKEN} \
-#        -H "Accept: application/vnd.github.v3+json" \
-#        --url https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/$1/dispatches \
-#        -d '{"ref":"main"}'
-#        }
-#
-#        if [ "${status}" == "up" ]; then trigger_workflow "cicdsetup.yaml" && echo "Setting up the cluster has been started"
-#        else trigger_workflow "cicddestroy.yaml" && echo "Destroying the cluster has been started"
-#        fi
+name: Temp controller
+on: 
+  push:
+
+env:
+  USER: AireeApp1
+
+jobs:
+  sync_infrastructure:
+    runs-on: self-hosted
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: decide what to do
+      run: |
+        for env in $(cat status.json | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" ); do export $env; done
+
+        trigger_workflow () {
+        curl -X POST -u ${USER}:${PAT_TOKEN} \
+        -H "Accept: application/vnd.github.v3+json" \
+        --url https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/$1/dispatches \
+        -d '{"ref":"main"}'
+        }
+
+        if [ "${status}" == "up" ]; then trigger_workflow "cicdsetup.yaml" && echo "Setting up the cluster has been started"
+        else trigger_workflow "cicddestroy.yaml" && echo "Destroying the cluster has been started"
+        fi
