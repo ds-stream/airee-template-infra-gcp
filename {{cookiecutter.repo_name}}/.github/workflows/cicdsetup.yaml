@@ -18,14 +18,14 @@ jobs:
       run: gcloud config set project "{{cookiecutter.project_id}}"
     - name: configure kubernetes connection
       run: gcloud container clusters get-credentials "{{cookiecutter.cluster_name}}-{{cookiecutter.workspace}}" --region "{{cookiecutter.region}}" --project "{{cookiecutter.project_id}}"
+    - name: check pods
+      run: |
+         for i in pgbouncer airflow-redis airflow-scheduler airflow-webserver airflow-worker ; do kubectl wait --timeout=1200s --for=condition=ready pods -n airflow -l app=$i ; done
     - name: check webserver ip
       run: |
         echo "WEBSERVER_URL=$(kubectl get service airflow-webserver -n airflow -o jsonpath="{.status.loadBalancer.ingress[0].ip}:{.spec.ports[0].port}")" >> $GITHUB_ENV
     - name: show webserver URL
       run: {% raw %} echo "http://${{ env.WEBSERVER_URL }}" {% endraw %}
-    - name: check pods
-      run: |
-         for i in pgbouncer airflow-redis airflow-scheduler airflow-webserver airflow-worker ; do kubectl wait --for=condition=ready pods -n airflow -l app=$i ; done
     - name: check webserver health
       run: |
          repeat="true"
