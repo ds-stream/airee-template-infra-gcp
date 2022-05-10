@@ -55,7 +55,7 @@ variable "webserver_nodepool" {
     name         = "{{cookiecutter._nodeSelectorPurposeWebserver}}"
     node_count   = 1
     {% if cookiecutter.airflow_performance == 'small' -%}
-    machine_type = "custom-4-5120"
+    machine_type = "custom-4-8192"
     {% elif cookiecutter.airflow_performance == 'standard' -%}
     machine_type = "custom-4-8192"
     {% elif cookiecutter.airflow_performance == 'large' -%}
