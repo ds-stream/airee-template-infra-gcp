@@ -44,7 +44,7 @@ variable "webserver_nodepool" {
     {% elif cookiecutter.airflow_performance == 'standard' -%}
     machine_type = "custom-4-8192"
     {% elif cookiecutter.airflow_performance == 'large' -%}
-    machine_type = "custom-2-8192"
+    machine_type = "custom-4-8192"
     taint        = "{{cookiecutter._nodeSelectorPurposeWebserver}}"
     {%- endif %}
   }
@@ -56,13 +56,13 @@ variable "worker_nodepool" {
     taint        = "{{cookiecutter._nodeSelectorPurposeWorker}}"
     {% if cookiecutter.airflow_performance == 'small' -%}
     node_count   = 1
-    machine_type = "custom-4-12288"
+    machine_type = "custom-4-8192"
     {% elif cookiecutter.airflow_performance == 'standard' -%}
-    node_count   = 1
-    machine_type = "custom-6-12288"
+    node_count   = 2
+    machine_type = "custom-4-8192"
     {% elif cookiecutter.airflow_performance == 'large' -%}
-    node_count   = 1
-    machine_type = "custom-6-12288"
+    node_count   = 4
+    machine_type = "custom-4-8192"
     {%- endif %}
   }
 }
