@@ -34,21 +34,6 @@ variable "postgres_database_name" {
   default = "airflow_db"
 }
 #################################################
-variable "additional_nodepool" {
-  type = map(any)
-  default = {
-    name         = "{{cookiecutter._nodeSelectorPurposeAdditional}}"
-    {% if cookiecutter.airflow_performance == 'small' -%}
-    node_count   = 0
-    {% elif cookiecutter.airflow_performance == 'standard' -%}
-    node_count   = 0
-    {% elif cookiecutter.airflow_performance == 'large' -%}
-    node_count   = 1
-    {%- endif %}
-    
-    machine_type = "custom-4-4096"
-  }
-}
 variable "webserver_nodepool" {
   type = map(any)
   default = {
@@ -79,24 +64,6 @@ variable "worker_nodepool" {
     node_count   = 1
     machine_type = "custom-6-12288"
     {%- endif %}
-  }
-}
-variable "scheduler_nodepool" {
-  type = map(any)
-  default = {
-    name         = "{{cookiecutter._nodeSelectorPurposeScheduler}}"
-    {% if cookiecutter.airflow_performance == 'small' -%}
-    node_count   = 0
-    machine_type = "e2-medium"
-    {% elif cookiecutter.airflow_performance == 'standard' -%}
-    node_count   = 0
-    machine_type = "custom-2-4096"
-    {% elif cookiecutter.airflow_performance == 'large' -%}
-    node_count   = 1
-    machine_type = "custom-2-4096"
-    taint        = "{{cookiecutter._nodeSelectorPurposeScheduler}}"
-    {%- endif %}
-    
   }
 }
 #################################################

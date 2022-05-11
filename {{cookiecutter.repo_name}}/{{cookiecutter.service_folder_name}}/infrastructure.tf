@@ -74,23 +74,6 @@ resource "google_container_cluster" "primary" {
   depends_on = [google_service_networking_connection.private_vpc_connection]
 }
 
-resource "google_container_node_pool" "primary_preemptible_nodes" {
-  name           = var.additional_nodepool["name"]
-  location       = var.region
-  cluster        = google_container_cluster.primary.name
-  node_count     = var.additional_nodepool["node_count"]
-  node_locations = [var.zone]
-  node_config {
-    preemptible  = true
-    machine_type = var.additional_nodepool["machine_type"]
-    labels       = { "purpose" = var.additional_nodepool["name"] }
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/cloud-platform"
-    ]
-  }
-  depends_on = [google_container_cluster.primary]
-}
-
 resource "google_container_node_pool" "webserver_nodepool" {
   name           = var.webserver_nodepool["name"]
   location       = var.region
@@ -135,32 +118,6 @@ resource "google_container_node_pool" "worker_nodepool" {
     taint {
             key = "purpose"
             value = var.worker_nodepool["name"]
-            effect = "NO_SCHEDULE"
-          }
-    {%- endif %}
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/cloud-platform"
-    ]
-  }
-  depends_on = [google_container_cluster.primary]
-}
-
-resource "google_container_node_pool" "scheduler_nodepool" {
-  name           = var.scheduler_nodepool["name"]
-  location       = var.region
-  cluster        = google_container_cluster.primary.name
-  node_count     = var.scheduler_nodepool["node_count"]
-  node_locations = [var.zone]
-  node_config {
-    preemptible  = true
-    machine_type = var.scheduler_nodepool["machine_type"]
-    labels       = { "purpose" = var.scheduler_nodepool["name"] }
-    {% if cookiecutter.airflow_performance == 'small' -%}
-    {% elif cookiecutter.airflow_performance == 'standard' -%}
-    {% elif cookiecutter.airflow_performance == 'large' -%}
-    taint {
-            key = "purpose"
-            value = var.scheduler_nodepool["name"]
             effect = "NO_SCHEDULE"
           }
     {%- endif %}

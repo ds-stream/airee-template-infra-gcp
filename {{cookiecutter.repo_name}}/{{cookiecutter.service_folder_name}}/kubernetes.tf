@@ -37,7 +37,7 @@ resource "kubernetes_namespace" "airflow_cluster" {
   metadata {
     name = var.namespace
   }
-  depends_on = [google_container_node_pool.primary_preemptible_nodes]
+  depends_on = [google_container_node_pool.webserver_nodepool]
 }
 
 resource "kubernetes_config_map" "airflow_cluster" {
