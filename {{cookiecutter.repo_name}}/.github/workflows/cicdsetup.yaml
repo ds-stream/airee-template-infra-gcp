@@ -18,6 +18,22 @@ jobs:
       run: gcloud config set project "{{cookiecutter.project_id}}"
     - name: configure kubernetes connection
       run: gcloud container clusters get-credentials "{{cookiecutter.cluster_name}}-{{cookiecutter.workspace}}" --region "{{cookiecutter.region}}" --project "{{cookiecutter.project_id}}"
+    - name: check pods number
+      run: |
+         repeat="true"
+         wait_s=10
+         max_retries=20
+         while ${repeat} ; do
+         pods_n=`kubectl get pods -n airflow | wc -l`
+         if [ ${pods_n} -ge 5 ] ; then
+          echo "Pods number - ok" && exit 0
+         else
+         ((i=i+1)) && echo "retries number ${i}" ; sleep ${wait_s}
+          if [ ${i} -eq ${max_retries} ] ; then
+                echo "The maximum number of retries has been reached" && exit 1
+          fi
+         fi
+         done      
     - name: check pods
       run: |
          for i in pgbouncer airflow-redis airflow-scheduler airflow-webserver airflow-worker ; do kubectl wait --timeout=1200s --for=condition=ready pods -n airflow -l app=$i ; done
