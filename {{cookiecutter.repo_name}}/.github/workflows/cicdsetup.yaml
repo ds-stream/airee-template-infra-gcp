@@ -36,7 +36,7 @@ jobs:
          done      
     - name: check pods
       run: |
-         max_retries=10
+         max_retries=20
          for i in pgbouncer airflow-redis airflow-scheduler airflow-webserver airflow-worker ; do
          until kubectl wait --timeout=10s --for=condition=ready pods -n airflow -l app=$i
          do echo "waiting for $i"
