@@ -64,6 +64,8 @@ resource "kubernetes_config_map" "airflow_cluster" {
 ########FLUX###########
 #######################
 
+# Workload identity service account for flux
+
 resource "google_service_account" "workload-identity-user-sa" {
   account_id   = var.workload_identity_user
   display_name = "Service Account For Flux to access GCR"
@@ -80,6 +82,53 @@ resource "google_project_iam_member" "workload_identity-role" {
   member = "serviceAccount:${var.project_id}.svc.id.goog[flux-system/${var.workload_identity_user}]"
   project = var.project_id
 }
+
+# Init token for flux
+# TODO Should we parametrize member account? This account set up infrastructure
+resource "google_service_account_iam_binding" "token-creator-iam" {
+    service_account_id = "projects/-/serviceAccounts/${google_service_account.workload-identity-user-sa.email}"
+    role               = "roles/iam.serviceAccountTokenCreator"
+    members = [
+        "serviceAccount:airee-app-1@dsstream-airflowk8s.iam.gserviceaccount.com"
+    ]
+}
+
+resource "time_sleep" "wait_for_permissions" {
+  depends_on = [google_service_account_iam_binding.token-creator-iam]
+  create_duration = "120s"
+}
+
+data "google_service_account_access_token" "default" {
+  target_service_account = "${google_service_account.workload-identity-user-sa.email}"
+  scopes                 = ["cloud-platform"]
+  depends_on = [
+    time_sleep.wait_for_permissions
+  ]
+}
+
+data "template_file" "docker_config_script" {
+  template = "${file("${path.module}/kube_docker_registry_config.json")}"
+  vars = {
+    docker-username           = "oauth2accesstoken"
+    docker-password           = "${data.google_service_account_access_token.default.access_token}"
+    docker-server             = "gcr.io"
+    auth                      = base64encode("oauth2accesstoken:${data.google_service_account_access_token.default.access_token}")
+  }
+}
+
+resource "kubernetes_secret" "docker-registry" {
+  metadata {
+    name = "gcr-credentials"
+    namespace = var.flux_namespace
+  }
+
+  data = {
+    ".dockerconfigjson" = "${data.template_file.docker_config_script.rendered}"
+  }
+
+  type = "kubernetes.io/dockerconfigjson"
+}
+
 
 # Flux
 provider "flux" {}
