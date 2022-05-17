@@ -34,6 +34,12 @@ variable "postgres_database_name" {
   default = "airflow_db"
 }
 #################################################
+
+variable "workload_identity_user" {
+  default = "wi-user-sa-{{cookiecutter.workspace}}"
+}
+
+#################################################
 variable "webserver_nodepool" {
   type = map(any)
   default = {

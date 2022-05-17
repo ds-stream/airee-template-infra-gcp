@@ -64,25 +64,25 @@ resource "kubernetes_config_map" "airflow_cluster" {
 ########FLUX###########
 #######################
 
-# Flux
-provider "flux" {}
-
-locals {
-    autolog = <<EOT
-patches:
-- target:
-    version: v1
-    group: apps
-    kind: Deployment
-    name: image-reflector-controller
-    namespace: flux-system
-  patch: |-
-    - op: add
-      path: /spec/template/spec/containers/0/args/-
-      value: --gcp-autologin-for-gcr
-EOT
+resource "google_service_account" "workload-identity-user-sa" {
+  account_id   = var.workload_identity_user
+  display_name = "Service Account For Flux to access GCR"
 }
 
+resource "google_project_iam_member" "gcr-pull-role" {
+  role = "roles/storage.objectViewer" 
+  member = "serviceAccount:${google_service_account.workload-identity-user-sa.email}"
+  project = var.project_id
+}
+
+resource "google_project_iam_member" "workload_identity-role" {
+  role   = "roles/iam.workloadIdentityUser"
+  member = "serviceAccount:${var.project_id}.svc.id.goog[flux-system/${var.workload_identity_user}]"
+  project = var.project_id
+}
+
+# Flux
+provider "flux" {}
 
 data "flux_install" "main" {
   target_path      = var.target_path
@@ -201,7 +201,7 @@ resource "github_repository_file" "sync" {
 resource "github_repository_file" "kustomize" {
   repository          = var.repository_name
   file                = data.flux_sync.main.kustomize_path
-  content             = "${data.flux_sync.main.kustomize_content}${local.autolog}"
+  content             = data.flux_sync.main.kustomize_content
   branch              = var.branch
   overwrite_on_create = true
 }
