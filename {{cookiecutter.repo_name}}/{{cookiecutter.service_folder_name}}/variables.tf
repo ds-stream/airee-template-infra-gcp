@@ -39,6 +39,10 @@ variable "workload_identity_user" {
   default = "wi-user-sa-{{cookiecutter.workspace}}"
 }
 
+variable "base_service_account" {
+  dedefault = "{{cookiecutter.base_service_account}}"
+}
+
 #################################################
 variable "webserver_nodepool" {
   type = map(any)

@@ -89,7 +89,7 @@ resource "google_service_account_iam_binding" "token-creator-iam" {
     service_account_id = "projects/-/serviceAccounts/${google_service_account.workload-identity-user-sa.email}"
     role               = "roles/iam.serviceAccountTokenCreator"
     members = [
-        "serviceAccount:airee-app-1@dsstream-airflowk8s.iam.gserviceaccount.com"
+        "serviceAccount:${var.base_service_account}"
     ]
 }
 
