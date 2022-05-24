@@ -40,7 +40,7 @@ variable "workload_identity_user" {
 }
 
 variable "base_service_account" {
-  dedefault = "{{cookiecutter.base_service_account}}"
+  default = "{{cookiecutter.base_service_account}}"
 }
 
 #################################################
