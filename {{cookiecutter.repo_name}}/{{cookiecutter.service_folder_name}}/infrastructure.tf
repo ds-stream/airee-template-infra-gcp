@@ -71,6 +71,9 @@ resource "google_container_cluster" "primary" {
   networking_mode          = "VPC_NATIVE"
   network                  = google_compute_network.private_network.name
   ip_allocation_policy {}
+  workload_identity_config {
+    workload_pool = "${var.project_id}.svc.id.goog"
+  }
   depends_on = [google_service_networking_connection.private_vpc_connection]
 }
 
