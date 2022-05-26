@@ -22,7 +22,17 @@ variable "private_network_name" {
 variable "private-ip-address_name" {
   default = "private-ip-address-{{cookiecutter.workspace}}"
 }
+#################################################
 
+variable "dns_zone_name" {
+  default = "{{cookiecutter._dns_zone_name}}"
+}
+variable "subdomain_name" {
+  default = "{{cookiecutter.subdomain_name}}"
+}
+variable "domain_name" {
+  default = "{{cookiecutter._domain_name}}"
+}
 #################################################
 variable "database_instance_name" {
   default = "{{cookiecutter.database_instance_name}}-{{cookiecutter.workspace}}"
@@ -81,7 +91,7 @@ variable "cluster_name" {
   default = "{{cookiecutter.cluster_name}}-{{cookiecutter.workspace}}"
 }
 variable "namespace" {
-  default = "airflow"
+  default = "{{cookiecutter._namespace}}"
 }
 #################################################
 variable "nfs_disk" {

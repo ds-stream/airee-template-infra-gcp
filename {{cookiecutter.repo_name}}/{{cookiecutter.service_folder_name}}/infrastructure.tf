@@ -139,3 +139,24 @@ resource "google_compute_disk" "nfs-disk" {
   physical_block_size_bytes = 4096
   depends_on = [google_container_cluster.primary]
 }
+
+#########
+## DNS ##
+#########
+
+resource "google_compute_address" "static" {
+  name   = var.cluster_name
+  region = var.region
+  depends_on = [google_container_node_pool.webserver_nodepool]
+}
+
+
+resource "google_dns_record_set" "type_a" {
+  name         = "${var.subdomain_name}.${var.domain_name}."
+  managed_zone = var.dns_zone_name
+  type         = "A"
+  ttl          = 300
+
+  rrdatas = ["${google_compute_address.static.address}"]
+  depends_on = [google_compute_address.static]
+}
