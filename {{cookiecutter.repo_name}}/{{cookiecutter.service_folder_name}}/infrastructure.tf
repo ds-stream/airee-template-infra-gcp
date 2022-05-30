@@ -150,7 +150,6 @@ resource "google_compute_address" "static" {
   depends_on = [google_container_node_pool.webserver_nodepool]
 }
 
-
 resource "google_dns_record_set" "type_a" {
   name         = "${var.subdomain_name}.${var.domain_name}."
   managed_zone = var.dns_zone_name
@@ -159,4 +158,16 @@ resource "google_dns_record_set" "type_a" {
 
   rrdatas = ["${google_compute_address.static.address}"]
   depends_on = [google_compute_address.static]
+}
+
+data "template_file" "convert-json-template" {
+    template = file("./dashboard.tpl")
+
+    vars = {
+        cluster_name = "${var.cluster_name}"
+    }
+}
+
+resource "google_monitoring_dashboard" "dashboard" {
+  dashboard_json = data.template_file.convert-json-template.rendered
 }
