@@ -22,7 +22,17 @@ variable "private_network_name" {
 variable "private-ip-address_name" {
   default = "private-ip-address-{{cookiecutter.workspace}}"
 }
+#################################################
 
+variable "dns_zone_name" {
+  default = "{{cookiecutter._dns_zone_name}}"
+}
+variable "subdomain_name" {
+  default = "{{cookiecutter.workspace}}"
+}
+variable "domain_name" {
+  default = "{{cookiecutter._domain_name}}"
+}
 #################################################
 variable "database_instance_name" {
   default = "{{cookiecutter.database_instance_name}}-{{cookiecutter.workspace}}"
@@ -33,6 +43,16 @@ variable "database_instance_version" {
 variable "postgres_database_name" {
   default = "airflow_db"
 }
+#################################################
+
+variable "workload_identity_user" {
+  default = "wi-user-sa-{{cookiecutter.workspace}}"
+}
+
+variable "base_service_account" {
+  default = "{{cookiecutter.base_service_account}}"
+}
+
 #################################################
 variable "webserver_nodepool" {
   type = map(any)
@@ -71,7 +91,7 @@ variable "cluster_name" {
   default = "{{cookiecutter.cluster_name}}-{{cookiecutter.workspace}}"
 }
 variable "namespace" {
-  default = "airflow"
+  default = "{{cookiecutter._namespace}}"
 }
 #################################################
 variable "nfs_disk" {

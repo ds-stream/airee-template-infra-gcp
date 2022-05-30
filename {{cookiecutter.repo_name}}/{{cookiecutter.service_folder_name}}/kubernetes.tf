@@ -60,29 +60,103 @@ resource "kubernetes_config_map" "airflow_cluster" {
   ]
 }
 
+resource "kubernetes_service" "airflow_service" {
+  metadata {
+    name = "airflow-webserver"
+    namespace = var.namespace
+    annotations = {
+      "cloud.google.com/load-balancer-type" = "External"
+      "networking.gke.io/internal-load-balancer-allow-global-access" = "true"
+    }
+  }
+  spec {
+    selector = {
+      app = "airflow-webserver"
+    }
+    session_affinity = "ClientIP"
+    port {
+      name = "http"
+      port        = 8080
+      protocol = "TCP"
+    }
+    load_balancer_ip = "${google_compute_address.static.address}"
+    type = "LoadBalancer"
+  }
+  depends_on = [google_compute_address.static]
+}
+
 #######################
 ########FLUX###########
 #######################
 
-# Flux
-provider "flux" {}
+# Workload identity service account for flux
 
-locals {
-    autolog = <<EOT
-patches:
-- target:
-    version: v1
-    group: apps
-    kind: Deployment
-    name: image-reflector-controller
-    namespace: flux-system
-  patch: |-
-    - op: add
-      path: /spec/template/spec/containers/0/args/-
-      value: --gcp-autologin-for-gcr
-EOT
+resource "google_service_account" "workload-identity-user-sa" {
+  account_id   = var.workload_identity_user
+  display_name = "Service Account For Flux to access GCR"
 }
 
+resource "google_project_iam_member" "gcr-pull-role" {
+  role = "roles/storage.objectViewer" 
+  member = "serviceAccount:${google_service_account.workload-identity-user-sa.email}"
+  project = var.project_id
+}
+
+resource "google_project_iam_member" "workload_identity-role" {
+  role   = "roles/iam.workloadIdentityUser"
+  member = "serviceAccount:${var.project_id}.svc.id.goog[flux-system/${var.workload_identity_user}]"
+  project = var.project_id
+}
+
+# Init token for flux
+# TODO Should we parametrize member account? This account set up infrastructure
+resource "google_service_account_iam_binding" "token-creator-iam" {
+    service_account_id = "projects/-/serviceAccounts/${google_service_account.workload-identity-user-sa.email}"
+    role               = "roles/iam.serviceAccountTokenCreator"
+    members = [
+        "serviceAccount:${var.base_service_account}"
+    ]
+}
+
+resource "time_sleep" "wait_for_permissions" {
+  depends_on = [google_service_account_iam_binding.token-creator-iam]
+  create_duration = "120s"
+}
+
+data "google_service_account_access_token" "default" {
+  target_service_account = "${google_service_account.workload-identity-user-sa.email}"
+  scopes                 = ["cloud-platform"]
+  depends_on = [
+    time_sleep.wait_for_permissions
+  ]
+}
+
+data "template_file" "docker_config_script" {
+  template = "${file("${path.module}/kube_docker_registry_config.json")}"
+  vars = {
+    docker-username           = "oauth2accesstoken"
+    docker-password           = "${data.google_service_account_access_token.default.access_token}"
+    docker-server             = "gcr.io"
+    auth                      = base64encode("oauth2accesstoken:${data.google_service_account_access_token.default.access_token}")
+  }
+}
+
+resource "kubernetes_secret" "docker-registry" {
+  metadata {
+    name = "gcr-credentials"
+    namespace = var.flux_namespace
+  }
+
+  data = {
+    ".dockerconfigjson" = "${data.template_file.docker_config_script.rendered}"
+  }
+
+  type = "kubernetes.io/dockerconfigjson"
+}
+
+
+# Flux
+provider "flux" {}
 
 data "flux_install" "main" {
   target_path      = var.target_path
@@ -201,7 +275,7 @@ resource "github_repository_file" "sync" {
 resource "github_repository_file" "kustomize" {
   repository          = var.repository_name
   file                = data.flux_sync.main.kustomize_path
-  content             = "${data.flux_sync.main.kustomize_content}${local.autolog}"
+  content             = data.flux_sync.main.kustomize_content
   branch              = var.branch
   overwrite_on_create = true
 }

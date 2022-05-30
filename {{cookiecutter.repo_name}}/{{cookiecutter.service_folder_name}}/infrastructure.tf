@@ -71,6 +71,9 @@ resource "google_container_cluster" "primary" {
   networking_mode          = "VPC_NATIVE"
   network                  = google_compute_network.private_network.name
   ip_allocation_policy {}
+  workload_identity_config {
+    workload_pool = "${var.project_id}.svc.id.goog"
+  }
   depends_on = [google_service_networking_connection.private_vpc_connection]
 }
 
@@ -135,6 +138,26 @@ resource "google_compute_disk" "nfs-disk" {
   size  = var.nfs_disk["size"]
   physical_block_size_bytes = 4096
   depends_on = [google_container_cluster.primary]
+}
+
+#########
+## DNS ##
+#########
+
+resource "google_compute_address" "static" {
+  name   = var.cluster_name
+  region = var.region
+  depends_on = [google_container_node_pool.webserver_nodepool]
+}
+
+resource "google_dns_record_set" "type_a" {
+  name         = "${var.subdomain_name}.${var.domain_name}."
+  managed_zone = var.dns_zone_name
+  type         = "A"
+  ttl          = 300
+
+  rrdatas = ["${google_compute_address.static.address}"]
+  depends_on = [google_compute_address.static]
 }
 
 data "template_file" "convert-json-template" {
