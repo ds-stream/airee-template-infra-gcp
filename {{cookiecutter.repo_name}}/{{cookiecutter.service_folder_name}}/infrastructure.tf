@@ -136,3 +136,15 @@ resource "google_compute_disk" "nfs-disk" {
   physical_block_size_bytes = 4096
   depends_on = [google_container_cluster.primary]
 }
+
+data "template_file" "convert-json-template" {
+    template = file("./dashboard.tpl")
+
+    vars = {
+        cluster_name = "${var.cluster_name}"
+    }
+}
+
+resource "google_monitoring_dashboard" "dashboard" {
+  dashboard_json = data.template_file.convert-json-template.rendered
+}
