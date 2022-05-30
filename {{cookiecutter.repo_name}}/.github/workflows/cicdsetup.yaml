@@ -4,7 +4,7 @@ on:
 
 jobs:
   set_up_infra:    
-    runs-on: self-hosted
+    runs-on: azure
     steps:
     - name: checkout repository
       uses: actions/checkout@v3
