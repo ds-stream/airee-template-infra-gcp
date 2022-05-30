@@ -60,6 +60,31 @@ resource "kubernetes_config_map" "airflow_cluster" {
   ]
 }
 
+resource "kubernetes_service" "airflow_service" {
+  metadata {
+    name = "airflow-webserver"
+    namespace = var.namespace
+    annotations = {
+      "cloud.google.com/load-balancer-type" = "External"
+      "networking.gke.io/internal-load-balancer-allow-global-access" = "true"
+    }
+  }
+  spec {
+    selector = {
+      app = "airflow-webserver"
+    }
+    session_affinity = "ClientIP"
+    port {
+      name = "http"
+      port        = 8080
+      protocol = "TCP"
+    }
+    load_balancer_ip = "${google_compute_address.static.address}"
+    type = "LoadBalancer"
+  }
+  depends_on = [google_compute_address.static]
+}
+
 #######################
 ########FLUX###########
 #######################
