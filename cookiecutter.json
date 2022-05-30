@@ -17,7 +17,6 @@
     "_namespace": "airflow",
     "_domain_name": "aireetest.com",
     "_dns_zone_name": "aireetest-com" ,
-    "subdomain_name": "eg. <subdomain_name>.testairee.com",
     "workspace": "test",
     "env": "dev",
     "org": "DsAirKube"

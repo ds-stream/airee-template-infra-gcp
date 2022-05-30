@@ -28,7 +28,7 @@ variable "dns_zone_name" {
   default = "{{cookiecutter._dns_zone_name}}"
 }
 variable "subdomain_name" {
-  default = "{{cookiecutter.subdomain_name}}"
+  default = "{{cookiecutter.workspace}}"
 }
 variable "domain_name" {
   default = "{{cookiecutter._domain_name}}"
