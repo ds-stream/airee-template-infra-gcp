@@ -7,7 +7,7 @@ env:
 
 jobs:
   sync_infrastructure:
-    runs-on: self-hosted
+    runs-on: azure
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
