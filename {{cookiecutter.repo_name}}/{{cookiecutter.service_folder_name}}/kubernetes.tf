@@ -78,7 +78,7 @@ resource "kubernetes_service" "airflow_service" {
       name       = "https"
       port       = 443
       protocol   = "TCP"
-      targetPort = 8080
+      target_port = 8080
     }
     load_balancer_ip = "${google_compute_address.static.address}"
     type = "LoadBalancer"
