@@ -50,14 +50,14 @@ jobs:
       run: |
         echo "WEBSERVER_URL=$(kubectl get service airflow-webserver -n airflow -o jsonpath="{.status.loadBalancer.ingress[0].ip}:{.spec.ports[0].port}")" >> $GITHUB_ENV
     - name: show webserver URL
-      run: {% raw %} echo "http://${{ env.WEBSERVER_URL }}" {% endraw %}
+      run: {% raw %} echo "https://${{ env.WEBSERVER_URL }}" {% endraw %}
     - name: check webserver health
       run: |
          repeat="true"
          wait_s=10
          max_retries=30
          while ${repeat} ; do
-         {% raw %} CHECK=`timeout 300 curl -s "http://${{ env.WEBSERVER_URL }}/api/v1/health" -H "content-type: application/json" | grep -w healthy | wc -l` {% endraw %}
+         {% raw %} CHECK=`timeout 300 curl -k "https://${{ env.WEBSERVER_URL }}/api/v1/health" -H "content-type: application/json" | grep -w healthy | wc -l` {% endraw %}
          if [ ${CHECK} -eq 2 ] ; then
           echo "cluster is healthy" ; repeat="false"
          else
