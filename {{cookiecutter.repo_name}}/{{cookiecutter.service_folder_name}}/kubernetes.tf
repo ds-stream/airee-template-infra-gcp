@@ -51,14 +51,31 @@ resource "kubernetes_config_map" "airflow_cluster" {
 
   data = {
     POSTGRES_HOST     = "${google_sql_database_instance.instance.private_ip_address}"
-    POSTGRES_DB       = "airflow_db"
-    POSTGRES_USER     = "airflow"
-    POSTGRES_PASSWORD = "airflow"
+    POSTGRES_DB       = var.postgres_database_name
+    POSTGRES_USER     = var.postgres_user_name
+    POSTGRES_PASSWORD = var.postgres_user_password
   }
   depends_on = [
     kubernetes_namespace.airflow_cluster
   ]
 }
+
+resource "google_project_service" "secretmanager" {
+  service  = "secretmanager.googleapis.com"
+}
+
+resource "google_secret_manager_secret" "postgress_connection_string" {
+  secret_id = "{{cookiecutter.workspace}}-postgress_conn_string"
+  replication {
+    automatic = true
+  }
+}
+
+resource "google_secret_manager_secret_version" "postgress_connection_string" {
+  secret = google_secret_manager_secret.postgress_connection_string.id
+  secret_data = "${var.postgres_user_name}:${var.postgres_user_password}@airflow-pgbouncer/${var.postgres_database_name}"
+}
+
 
 resource "kubernetes_service" "airflow_service" {
   metadata {

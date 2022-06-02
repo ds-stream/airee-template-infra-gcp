@@ -43,6 +43,12 @@ variable "database_instance_version" {
 variable "postgres_database_name" {
   default = "airflow_db"
 }
+variable "postgres_user_name" {
+  default = "airflow"
+}
+variable "postgres_user_password" {
+  default = "airflow"
+}
 #################################################
 
 variable "workload_identity_user" {
