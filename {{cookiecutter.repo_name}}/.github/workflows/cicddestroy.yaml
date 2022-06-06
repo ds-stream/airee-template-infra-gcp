@@ -12,5 +12,5 @@ jobs:
       env:
         TF_VAR_github_token: {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %}
       run: bash sync_cloud.sh
-    - name: cleaning secrets
-      run: for name_secret in `gcloud secrets list --filter={{cookiecutter.workspace}}- --uri`; do gcloud secrets delete -q $name_secret; done
+    # - name: cleaning secrets
+    #   run: for name_secret in `gcloud secrets list --filter={{cookiecutter.workspace}}- --uri`; do gcloud secrets delete -q $name_secret; done

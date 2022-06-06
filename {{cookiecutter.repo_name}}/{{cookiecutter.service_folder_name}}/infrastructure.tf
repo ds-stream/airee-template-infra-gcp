@@ -183,7 +183,43 @@ resource "google_secret_manager_secret" "postgress_connection_string" {
   }
 }
 
+resource "google_secret_manager_secret" "admin_password" {
+  secret_id = "{{cookiecutter.workspace}}-admin_password"
+  replication {
+    automatic = true
+  }
+}
+
+resource "google_secret_manager_secret" "fernet_key" {
+  secret_id = "{{cookiecutter.workspace}}-fernet_key"
+  replication {
+    automatic = true
+  }
+}
+
+resource "random_password" "admin_password" {
+  length = 10
+  special = true
+  override_special = "!%@#$"
+}
+
+resource "random_password" "fernet_key" {
+  length = 45
+  special = true
+  override_special = "!%@#$"
+}
+
 resource "google_secret_manager_secret_version" "postgress_connection_string" {
   secret = google_secret_manager_secret.postgress_connection_string.id
   secret_data = "${var.postgres_user_name}:${var.postgres_user_password}@airflow-pgbouncer/${var.postgres_database_name}"
+}
+
+resource "google_secret_manager_secret_version" "admin_password" {
+  secret = google_secret_manager_secret.admin_password.id
+  secret_data = random_password.admin_password.result
+}
+
+resource "google_secret_manager_secret_version" "fernet_key" {
+  secret = google_secret_manager_secret.fernet_key.id
+  secret_data = random_password.fernet_key.result
 }

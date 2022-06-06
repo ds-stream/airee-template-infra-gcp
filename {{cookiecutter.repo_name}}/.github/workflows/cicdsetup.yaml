@@ -18,10 +18,6 @@ jobs:
       run: gcloud config set project "{{cookiecutter.project_id}}"
     - name: configure kubernetes connection
       run: gcloud container clusters get-credentials "{{cookiecutter.cluster_name}}-{{cookiecutter.workspace}}" --region "{{cookiecutter.region}}" --project "{{cookiecutter.project_id}}"
-    - name: generate password
-      run: |
-          gcloud secrets describe {{cookiecutter.workspace}}-admin_password > /dev/null 2>&1 && echo "admin password already exists" || openssl rand -base64 10 | gcloud secrets create {{cookiecutter.workspace}}-admin_password --data-file=- --replication-policy=automatic
-          gcloud secrets describe {{cookiecutter.workspace}}-fernet_key > /dev/null 2>&1 && echo "fernet_key already exists" || openssl rand -base64 45 | gcloud secrets create {{cookiecutter.workspace}}-fernet_key --data-file=- --replication-policy=automatic
     - name: check pods number
       run: |
          repeat="true"
