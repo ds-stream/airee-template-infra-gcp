@@ -2,7 +2,7 @@
     "repo_name": "repo name",
     "service_folder_name": ["service"],
     "storage_folder_name": ["storage"],
-    "project_id": ["dsstream-airflowk8s"],
+    "project_id": "dsstream-airflowk8s",
     "base_service_account": "airee-app-1@dsstream-airflowk8s.iam.gserviceaccount.com",
     "region": ["us-central1","us-east4", "us-west1", "europe-central2","europe-west2", "asia-east1", "northamerica-northeast1", "northamerica-northeast2","southamerica-east1","southamerica-west1"],
     "zone": ["{{cookiecutter.region}}-a", "{{cookiecutter.region}}-b", "{{cookiecutter.region}}-c"],
