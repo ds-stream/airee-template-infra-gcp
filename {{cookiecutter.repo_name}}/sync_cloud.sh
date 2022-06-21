@@ -3,7 +3,6 @@
 for env in $(cat status.json | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" ); do export $env; done
 
 #auth gcp
-gcloud auth activate-service-account ${GOOGLE_IMPERSONATE_SERVICE_ACCOUNT} --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 gcloud config set project {{cookiecutter.project_id}}
 
 #sync infr

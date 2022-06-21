@@ -19,6 +19,7 @@
     "_dns_zone_name": "aireetest-com" ,
     "workspace": "test",
     "env": "dev",
-    "org": "DsAirKube"
+    "org": "DsAirKube",
+    "labels": "airflow"
 }
 
