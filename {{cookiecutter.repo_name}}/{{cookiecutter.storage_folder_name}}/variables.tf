@@ -6,5 +6,5 @@ variable "region" {
   default = "asia-northeast1"
 }
 variable "gcs_tf_backend_name" {
-  default = "tf_airkube_backend"
+  default = "{{cookiecutter.tf_backend}}"
 }

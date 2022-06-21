@@ -20,6 +20,7 @@
     "workspace": "test",
     "env": "dev",
     "org": "DsAirKube",
-    "labels": "airflow"
+    "labels": "airflow",
+    "tf_backend": "tf_airkube_backend"
 }
 
