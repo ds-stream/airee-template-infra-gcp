@@ -2,12 +2,9 @@ name: Temp controller
 on: 
   push:
 
-env:
-  USER: AireeApp1
-
 jobs:
   sync_infrastructure:
-    runs-on: azure
+    runs-on: [self-hosted,{{cookiecutter.labels}}]
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -16,8 +13,8 @@ jobs:
         for env in $(cat status.json | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" ); do export $env; done
 
         trigger_workflow () {
-        curl -X POST -u ${USER}:${PAT_TOKEN} \
-        -H "Accept: application/vnd.github.v3+json" \
+        curl -X POST \
+        -H "Authorization: token {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %}" \
         --url https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/$1/dispatches \
         -d '{"ref":"main"}'
         }
