@@ -151,7 +151,7 @@ resource "google_compute_address" "static" {
   depends_on = [google_container_node_pool.webserver_nodepool]
 }
 
-{% if cookiecutter.domain<>None %}
+{% if cookiecutter.domain!=None %}
 resource "google_dns_record_set" "type_a" {
   name         = "${var.subdomain_name}.${var.domain_name}."
   managed_zone = var.dns_zone_name
