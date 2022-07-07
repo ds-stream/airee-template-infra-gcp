@@ -281,7 +281,7 @@ openssl x509 -req -passin pass:$rnd  -in ./Certs/csr.csr -CA ./Certs/cert.pem -C
 
 # CRT
 list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}_ariee_cert")
-if [[ ${list_of_secrets} != "" ]]
+if [[ $list_of_secrets != "" ]]
 then
     echo "Secret {{cookiecutter.workspace}}_ariee_cert exists, add new version"
     gcloud secrets versions add "{{cookiecutter.workspace}}_ariee_cert" \
@@ -294,7 +294,7 @@ fi
 
 #KEY
 list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}_ariee_key")
-if [[ ${list_of_secrets} != "" ]]
+if [[ $list_of_secrets != "" ]]
 then
     echo "Secret {{cookiecutter.workspace}}_ariee_key exists, add new version"
     gcloud secrets versions add "{{cookiecutter.workspace}}_ariee_key" \
@@ -307,7 +307,7 @@ fi
 
 #PEM
 list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}_ariee_pem")
-if [[ ${list_of_secrets} != "" ]]
+if [[ $list_of_secrets != "" ]]
 then
     echo "Secret {{cookiecutter.workspace}}_ariee_pem exists, add new version"
     gcloud secrets versions add "{{cookiecutter.workspace}}_ariee_pem" \
@@ -322,7 +322,8 @@ fi
 rm -r ./Certs/
 
 EOT
-    interpreter = ["/bin/bash"]
+    interpreter = ["/bin/bash", "-c"]
   }
+  depends_on = [google_compute_address.static]
 }
 {% endif %}
