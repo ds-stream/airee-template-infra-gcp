@@ -15,12 +15,13 @@
     "_nodeSelectorPurposeWebserver": "webserver",
     "_nodeSelectorPurposeScheduler": "scheduler",
     "_namespace": "airflow",
-    "_domain_name": "aireetest.com",
-    "_dns_zone_name": "aireetest-com" ,
     "workspace": "test",
     "env": "dev",
     "org": "DsAirKube",
     "labels": "airflow",
-    "tf_backend": "tf_airkube_backend"
+    "tf_backend": "tf_airkube_backend",
+    "domain": null,
+    "dns_zone": null,
+    "cert_name": null
 }
 

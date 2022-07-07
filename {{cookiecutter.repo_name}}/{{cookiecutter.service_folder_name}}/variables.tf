@@ -25,13 +25,13 @@ variable "private-ip-address_name" {
 #################################################
 
 variable "dns_zone_name" {
-  default = "{{cookiecutter._dns_zone_name}}"
+  default = "{{cookiecutter.dns_zone}}"
 }
 variable "subdomain_name" {
   default = "{{cookiecutter.workspace}}"
 }
 variable "domain_name" {
-  default = "{{cookiecutter._domain_name}}"
+  default = "{{cookiecutter.domain}}"
 }
 #################################################
 variable "database_instance_name" {
