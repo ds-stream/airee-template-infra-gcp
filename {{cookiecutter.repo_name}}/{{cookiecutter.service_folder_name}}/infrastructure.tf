@@ -144,12 +144,14 @@ resource "google_compute_disk" "nfs-disk" {
 ## DNS ##
 #########
 
+
 resource "google_compute_address" "static" {
   name   = var.cluster_name
   region = var.region
   depends_on = [google_container_node_pool.webserver_nodepool]
 }
 
+{% if cookiecutter.domain!=None %}
 resource "google_dns_record_set" "type_a" {
   name         = "${var.subdomain_name}.${var.domain_name}."
   managed_zone = var.dns_zone_name
@@ -159,6 +161,7 @@ resource "google_dns_record_set" "type_a" {
   rrdatas = ["${google_compute_address.static.address}"]
   depends_on = [google_compute_address.static]
 }
+{% endif %}
 
 data "template_file" "convert-json-template" {
     template = file("./dashboard.tpl")
@@ -223,3 +226,104 @@ resource "google_secret_manager_secret_version" "fernet_key" {
   secret = google_secret_manager_secret.fernet_key.id
   secret_data = random_password.fernet_key.result
 }
+
+######################
+## SELF SIGNED CERT ##
+######################
+
+{% if cookiecutter.cert_name==None %}
+resource "null_resource" "cert" {
+  provisioner "local-exec" {
+    environment = {
+      CountryName = "PL"
+      StateOrProvinceName = "Masovian"
+      LocalityName = "Warsaw"
+      OrganizationName="Org Name"
+      OrganizationalUnitName="Org Unit"
+      CommonName=""
+      EmailAddress=""
+    }
+    command = <<EOT
+mkdir -p ./Certs
+
+# 0. Generate random password for generate priv key and pem file
+rnd=`openssl rand -base64 32`
+subj="/C=$CountryName/ST=$StateOrProvinceName/L=$LocalityName/O=$OrganizationName/CN=$CommonName"
+
+# 1. Generate private key
+openssl genrsa -passout pass:$rnd -des3 -out ./Certs/private.key 2048
+
+# 2. Generate root certificate
+openssl req -x509 -new -nodes -passin pass:$rnd -subj "$subj" -key ./Certs/private.key -sha256 -days 825 -out ./Certs/cert.pem
+
+# 3. Generate a private key
+openssl genrsa -out ./Certs/key.key 2048
+
+# 4. Create a certificate-signing requesta
+openssl req -new -subj "$subj" -key ./Certs/key.key -out ./Certs/csr.csr
+
+# 5. Create a config file for the extensions
+>./Certs/extensions.ext cat <<-EOF
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+[alt_names]
+IP.1 = ${google_compute_address.static.address}
+EOF
+
+# 6. Create the signed certificate
+
+openssl x509 -req -passin pass:$rnd  -in ./Certs/csr.csr -CA ./Certs/cert.pem -CAkey ./Certs/private.key -CAcreateserial \
+-out ./Certs/certificate.crt -days 825 -sha256 -extfile ./Certs/extensions.ext
+
+# 7. Send data to gcloud
+
+# CRT
+list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}_ariee_cert")
+if [[ $list_of_secrets != "" ]]
+then
+    echo "Secret {{cookiecutter.workspace}}_ariee_cert exists, add new version"
+    gcloud secrets versions add "{{cookiecutter.workspace}}_ariee_cert" \
+        --data-file=./Certs/certificate.crt
+else
+    echo "Secret {{cookiecutter.workspace}}_ariee_cert not exists, creating"
+    gcloud secrets create "{{cookiecutter.workspace}}_ariee_cert" \
+        --data-file=./Certs/certificate.crt
+fi
+
+#KEY
+list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}_ariee_key")
+if [[ $list_of_secrets != "" ]]
+then
+    echo "Secret {{cookiecutter.workspace}}_ariee_key exists, add new version"
+    gcloud secrets versions add "{{cookiecutter.workspace}}_ariee_key" \
+        --data-file=./Certs/key.key
+else
+    echo "Secret {{cookiecutter.workspace}}_ariee_key not exists, creating"
+    gcloud secrets create "{{cookiecutter.workspace}}_ariee_key" \
+        --data-file=./Certs/key.key
+fi
+
+#PEM
+list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}_ariee_pem")
+if [[ $list_of_secrets != "" ]]
+then
+    echo "Secret {{cookiecutter.workspace}}_ariee_pem exists, add new version"
+    gcloud secrets versions add "{{cookiecutter.workspace}}_ariee_pem" \
+        --data-file=./Certs/cert.pem
+else
+    echo "Secret {{cookiecutter.workspace}}_ariee_pem not exists, creating"
+    gcloud secrets create "{{cookiecutter.workspace}}_ariee_pem" \
+        --data-file=./Certs/cert.pem
+fi
+
+# 8. Delete all files
+rm -r ./Certs/
+
+EOT
+    interpreter = ["/bin/bash", "-c"]
+  }
+  depends_on = [google_compute_address.static]
+}
+{% endif %}
