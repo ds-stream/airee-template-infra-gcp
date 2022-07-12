@@ -111,17 +111,9 @@ resource "google_project_iam_member" "workload_identity-role" {
 }
 
 # Init token for flux
-# TODO Should we parametrize member account? This account set up infrastructure
-resource "google_service_account_iam_binding" "token-creator-iam" {
-    service_account_id = "projects/-/serviceAccounts/${google_service_account.workload-identity-user-sa.email}"
-    role               = "roles/iam.serviceAccountTokenCreator"
-    members = [
-        "serviceAccount:${var.base_service_account}"
-    ]
-}
 
 resource "time_sleep" "wait_for_permissions" {
-  depends_on = [google_service_account_iam_binding.token-creator-iam]
+  depends_on = [google_service_account.workload-identity-user-sa]
   create_duration = "120s"
 }
 
