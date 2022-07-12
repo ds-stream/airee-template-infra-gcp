@@ -111,6 +111,7 @@ resource "google_project_iam_member" "workload_identity-role" {
 }
 
 # Init token for flux
+# Runner SA need "token creator role"
 
 resource "time_sleep" "wait_for_permissions" {
   depends_on = [google_service_account.workload-identity-user-sa]
