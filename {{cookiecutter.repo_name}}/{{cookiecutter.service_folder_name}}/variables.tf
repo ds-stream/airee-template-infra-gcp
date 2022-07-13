@@ -1,11 +1,4 @@
-##########################################################################################
-#  ___ _   _ _____ ____      _    ____ _____ ____  _   _  ____ _____ _   _ ____  _____   #
-# |_ _| \ | |  ___|  _ \    / \  / ___|_   _|  _ \| | | |/ ___|_   _| | | |  _ \| ____|  #
-#  | ||  \| | |_  | |_) |  / _ \ \___ \ | | | |_) | | | | |     | | | | | | |_) |  _|    #
-#  | || |\  |  _| |  _ <  / ___ \ ___) || | |  _ <| |_| | |___  | | | |_| |  _ <| |___   #
-# |___|_| \_|_|   |_| \_\/_/   \_\____/ |_| |_| \_\\___/ \____| |_|  \___/|_| \_\_____|  #
-##########################################################################################              
-
+#############   GCP PPROJECT   ################
 variable "project_id" {
   default = "{{cookiecutter.project_id}}"
 }
@@ -15,14 +8,16 @@ variable "region" {
 variable "zone" {
   default = "{{cookiecutter.zone}}"
 }
-#################################################
+
+################   VPC   ######################
 variable "private_network_name" {
   default = "{{cookiecutter.network_name}}-{{cookiecutter.workspace}}"
 }
 variable "private-ip-address_name" {
   default = "private-ip-address-{{cookiecutter.workspace}}"
 }
-#################################################
+
+###############  DOMAIN  #####################
 
 variable "dns_zone_name" {
   default = "{{cookiecutter.dns_zone}}"
@@ -33,7 +28,8 @@ variable "subdomain_name" {
 variable "domain_name" {
   default = "{{cookiecutter.domain}}"
 }
-#################################################
+
+###########   POSTGRES SQL   ##################
 variable "database_instance_name" {
   default = "{{cookiecutter.database_instance_name}}-{{cookiecutter.workspace}}"
 }
@@ -49,7 +45,8 @@ variable "postgres_user_name" {
 variable "postgres_user_password" {
   default = "airflow"
 }
-#################################################
+
+###########   WORDLOAD $ SA   #################
 
 variable "workload_identity_user" {
   default = "wi-user-sa-{{cookiecutter.workspace}}"
@@ -59,27 +56,20 @@ variable "base_service_account" {
   default = "{{cookiecutter.base_service_account}}"
 }
 
-#################################################
+###########   GKE CLUSTER   ###################
 variable "webserver_nodepool" {
   type = map(any)
   default = {
-    name         = "{{cookiecutter._nodeSelectorPurposeWebserver}}"
+    name         = "webserver"
     node_count   = 1
-    {% if cookiecutter.airflow_performance == 'small' -%}
     machine_type = "custom-4-8192"
-    {% elif cookiecutter.airflow_performance == 'standard' -%}
-    machine_type = "custom-4-8192"
-    {% elif cookiecutter.airflow_performance == 'large' -%}
-    machine_type = "custom-4-8192"
-    taint        = "{{cookiecutter._nodeSelectorPurposeWebserver}}"
-    {%- endif %}
   }
 }
 variable "worker_nodepool" {
   type = map(any)
   default = {
-    name         = "{{cookiecutter._nodeSelectorPurposeWorker}}"
-    taint        = "{{cookiecutter._nodeSelectorPurposeWorker}}"
+    name         = "worker"
+    taint        = "worker"
     {% if cookiecutter.airflow_performance == 'small' -%}
     node_count   = 1
     machine_type = "custom-4-8192"
@@ -92,64 +82,56 @@ variable "worker_nodepool" {
     {%- endif %}
   }
 }
-#################################################
 variable "cluster_name" {
   default = "{{cookiecutter.cluster_name}}-{{cookiecutter.workspace}}"
 }
 variable "namespace" {
   default = "{{cookiecutter._namespace}}"
 }
-#################################################
+
+###########   NFS DISK   ###################
 variable "nfs_disk" {
   type = map(any)
   default = {
     name  = "nfs-disk-{{cookiecutter.workspace}}"
     type  = "pd-standard"
-    size  = 10
-    
-    
+    size  = 10    
   }
 }
-##### FLUX
 
+############   FLUX   ########################
 # put as a os env 
 # export TF_VAR_github_token=<token>
 variable "github_token" {
   description = "token for github"
   type        = string
 }
-
 variable "repository_name" {
   description = "repository name"
   type        = string
   # Add to cookiecutter
   default = "{{cookiecutter.workspace}}_app_{{cookiecutter.env}}"
 }
-
 variable "organization" {
   description = "organization"
   type        = string
   default = "{{cookiecutter.org}}"
 }
-
 variable "branch" {
   description = "branch"
   type        = string
   default     = "main"
 }
-
 variable "target_path" {
   type        = string
   description = "Relative path to the Git repository root where the sync manifests are committed."
   default = "flux/"
 }
-
 variable "flux_namespace" {
   type        = string
   default     = "flux-system"
   description = "the flux namespace"
 }
-
 variable "github_deploy_key_title" {
   type        = string
   description = "Name of github deploy key"
