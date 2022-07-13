@@ -2,6 +2,11 @@
 # https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/guides/getting-started#provider-setup
 # add namespace and configmap
 
+
+#############
+#### VPC ####
+#############
+
 resource "google_compute_network" "private_network" {
   provider = google-beta
   project  = var.project_id
@@ -25,6 +30,11 @@ resource "google_service_networking_connection" "private_vpc_connection" {
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.private_ip_address.name]
 }
+
+
+######################
+#### POSTGRES SQL ####
+######################
 
 resource "random_id" "db_name_suffix" {
   byte_length = 4
@@ -62,6 +72,10 @@ resource "google_sql_database" "database" {
   depends_on = [google_sql_database_instance.instance]
 }
 
+
+#################
+#### CLUSTER ####
+#################
 
 resource "google_container_cluster" "primary" {
   name                     = var.cluster_name
@@ -103,27 +117,12 @@ resource "google_container_node_pool" "worker_nodepool" {
   node_config {
     preemptible  = true
     machine_type = var.worker_nodepool["machine_type"]
-    labels       = { "purpose" = var.worker_nodepool["name"]}
-    {% if cookiecutter.airflow_performance == 'micro' -%}
-    {% elif cookiecutter.airflow_performance == 'small' -%}
+    labels       = { "purpose" = var.worker_nodepool["name"] }
     taint {
-            key = "purpose"
-            value = var.worker_nodepool["name"]
-            effect = "NO_SCHEDULE"
-          }
-    {% elif cookiecutter.airflow_performance == 'standard' -%}
-    taint {
-            key = "purpose"
-            value = var.worker_nodepool["name"]
-            effect = "NO_SCHEDULE"
-          }
-    {% elif cookiecutter.airflow_performance == 'large' -%}
-    taint {
-            key = "purpose"
-            value = var.worker_nodepool["name"]
-            effect = "NO_SCHEDULE"
-          }
-    {%- endif %}
+      key    = "purpose"
+      value  = "worker"
+      effect = "NO_SCHEDULE"
+    }
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform"
     ]
@@ -131,23 +130,28 @@ resource "google_container_node_pool" "worker_nodepool" {
   depends_on = [google_container_cluster.primary]
 }
 
+
+#############
+#### NFS ####
+#############
+
 resource "google_compute_disk" "nfs-disk" {
-  name  = var.nfs_disk["name"]
-  type  = var.nfs_disk["type"]
-  zone  = var.zone
-  size  = var.nfs_disk["size"]
+  name                      = var.nfs_disk["name"]
+  type                      = var.nfs_disk["type"]
+  zone                      = var.zone
+  size                      = var.nfs_disk["size"]
   physical_block_size_bytes = 4096
-  depends_on = [google_container_cluster.primary]
+  depends_on                = [google_container_cluster.primary]
 }
 
-#########
-## DNS ##
-#########
 
+#############
+#### DNS ####
+#############
 
 resource "google_compute_address" "static" {
-  name   = var.cluster_name
-  region = var.region
+  name       = var.cluster_name
+  region     = var.region
   depends_on = [google_container_node_pool.webserver_nodepool]
 }
 
@@ -158,26 +162,27 @@ resource "google_dns_record_set" "type_a" {
   type         = "A"
   ttl          = 300
 
-  rrdatas = ["${google_compute_address.static.address}"]
+  rrdatas    = ["${google_compute_address.static.address}"]
   depends_on = [google_compute_address.static]
 }
 {% endif %}
 
 data "template_file" "convert-json-template" {
-    template = file("./dashboard.tpl")
+  template = file("./dashboard.tpl")
 
-    vars = {
-        cluster_name = "${var.cluster_name}"
-    }
+  vars = {
+    cluster_name = "${var.cluster_name}"
+  }
 }
 
 resource "google_monitoring_dashboard" "dashboard" {
   dashboard_json = data.template_file.convert-json-template.rendered
 }
 
-#############
-## SECRETS ##
-#############
+
+#################
+#### SECRETS ####
+#################
 
 resource "google_secret_manager_secret" "postgress_connection_string" {
   secret_id = "{{cookiecutter.workspace}}-postgress_conn_string"
@@ -201,49 +206,50 @@ resource "google_secret_manager_secret" "fernet_key" {
 }
 
 resource "random_password" "admin_password" {
-  length = 10
-  special = true
+  length           = 10
+  special          = true
   override_special = "!%@#$"
 }
 
 resource "random_password" "fernet_key" {
-  length = 45
-  special = true
+  length           = 45
+  special          = true
   override_special = "!%@#$"
 }
 
 resource "google_secret_manager_secret_version" "postgress_connection_string" {
-  secret = google_secret_manager_secret.postgress_connection_string.id
+  secret      = google_secret_manager_secret.postgress_connection_string.id
   secret_data = "${var.postgres_user_name}:${var.postgres_user_password}@airflow-pgbouncer/${var.postgres_database_name}"
 }
 
 resource "google_secret_manager_secret_version" "admin_password" {
-  secret = google_secret_manager_secret.admin_password.id
+  secret      = google_secret_manager_secret.admin_password.id
   secret_data = random_password.admin_password.result
 }
 
 resource "google_secret_manager_secret_version" "fernet_key" {
-  secret = google_secret_manager_secret.fernet_key.id
+  secret      = google_secret_manager_secret.fernet_key.id
   secret_data = random_password.fernet_key.result
 }
 
-######################
-## SELF SIGNED CERT ##
-######################
+
+##########################
+#### SELF SIGNED CERT ####
+##########################
 
 {% if cookiecutter.cert_name==None %}
 resource "null_resource" "cert" {
   provisioner "local-exec" {
     environment = {
-      CountryName = "PL"
-      StateOrProvinceName = "Masovian"
-      LocalityName = "Warsaw"
-      OrganizationName="Org Name"
-      OrganizationalUnitName="Org Unit"
-      CommonName=""
-      EmailAddress=""
+      CountryName            = "PL"
+      StateOrProvinceName    = "Masovian"
+      LocalityName           = "Warsaw"
+      OrganizationName       = "Org Name"
+      OrganizationalUnitName = "Org Unit"
+      CommonName             = ""
+      EmailAddress           = ""
     }
-    command = <<EOT
+    command     = <<EOT
 mkdir -p ./Certs
 
 # 0. Generate random password for generate priv key and pem file
