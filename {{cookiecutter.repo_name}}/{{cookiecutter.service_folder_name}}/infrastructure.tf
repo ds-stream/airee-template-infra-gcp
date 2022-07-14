@@ -11,6 +11,13 @@ resource "google_compute_network" "private_network" {
   provider = google-beta
   project  = var.project_id
   name     = var.private_network_name
+  auto_create_subnetworks = false
+}
+resource "google_compute_subnetwork" "subnetwork" {
+  name          = "${var.private_network_name}-subnetwork"
+  ip_cidr_range = "10.2.0.0/16"
+  region        = "us-central1"
+  network       = google_compute_network.private_network.id
 }
 
 resource "google_compute_global_address" "private_ip_address" {
@@ -84,6 +91,7 @@ resource "google_container_cluster" "primary" {
   initial_node_count       = 1
   networking_mode          = "VPC_NATIVE"
   network                  = google_compute_network.private_network.name
+  subnetwork               = google_compute_subnetwork.subnetwork.name 
   ip_allocation_policy {}
   workload_identity_config {
     workload_pool = "${var.project_id}.svc.id.goog"
