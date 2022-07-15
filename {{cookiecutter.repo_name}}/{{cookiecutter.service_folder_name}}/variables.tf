@@ -52,11 +52,8 @@ variable "workload_identity_user" {
   default = "wi-user-sa-{{cookiecutter.workspace}}"
 }
 
-variable "base_service_account" {
-  default = "{{cookiecutter.base_service_account}}"
-}
-
 ###########   GKE CLUSTER   ###################
+
 variable "webserver_nodepool" {
   type = map(any)
   default = {

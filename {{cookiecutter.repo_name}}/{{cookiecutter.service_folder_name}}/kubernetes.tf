@@ -111,17 +111,19 @@ resource "google_project_iam_member" "workload_identity-role" {
 }
 
 # Init token for flux
-# TODO Should we parametrize member account? This account set up infrastructure
-resource "google_service_account_iam_binding" "token-creator-iam" {
-    service_account_id = "projects/-/serviceAccounts/${google_service_account.workload-identity-user-sa.email}"
-    role               = "roles/iam.serviceAccountTokenCreator"
-    members = [
-        "serviceAccount:${var.base_service_account}"
-    ]
-}
+# Runner SA need "token creator role"
+# Now Runner SA have owner role, that is why it have permission to all sa. In future it will have only permission it needs and
+# we have to run google_service_account_iam_binding with Token Creator role for it. 
+# resource "google_service_account_iam_binding" "token-creator-iam" {
+#     service_account_id = "projects/-/serviceAccounts/${google_service_account.workload-identity-user-sa.email}"
+#     role               = "roles/iam.serviceAccountTokenCreator"
+#     members = [
+#         "serviceAccount:${var.base_service_account}"
+#     ]
+# }
 
 resource "time_sleep" "wait_for_permissions" {
-  depends_on = [google_service_account_iam_binding.token-creator-iam]
+  depends_on = [google_service_account.workload-identity-user-sa]
   create_duration = "120s"
 }
 
