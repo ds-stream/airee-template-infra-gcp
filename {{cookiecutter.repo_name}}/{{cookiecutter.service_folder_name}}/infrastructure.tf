@@ -7,12 +7,17 @@
 #### VPC ####
 #############
 
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_network
+# Create virtual network for whole infrastructure
 resource "google_compute_network" "private_network" {
   provider = google-beta
   project  = var.project_id
   name     = var.private_network_name
   auto_create_subnetworks = false
 }
+
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_subnetwork
+# Create subnetwork for infrastructure
 resource "google_compute_subnetwork" "subnetwork" {
   name          = "${var.private_network_name}-subnetwork"
   ip_cidr_range = "10.2.0.0/16"
@@ -20,6 +25,8 @@ resource "google_compute_subnetwork" "subnetwork" {
   network       = google_compute_network.private_network.id
 }
 
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_global_address
+# Global addresses are used for HTTP(S) load balancing.
 resource "google_compute_global_address" "private_ip_address" {
   provider      = google-beta
   project       = var.project_id
@@ -30,6 +37,8 @@ resource "google_compute_global_address" "private_ip_address" {
   network       = google_compute_network.private_network.id
 }
 
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/service_networking_connection
+# Manages a private VPC connection with a GCP service provider.
 resource "google_service_networking_connection" "private_vpc_connection" {
   provider = google-beta
 
@@ -43,10 +52,14 @@ resource "google_service_networking_connection" "private_vpc_connection" {
 #### POSTGRES SQL ####
 ######################
 
+# Sufix for postgres database name
 resource "random_id" "db_name_suffix" {
   byte_length = 4
 }
 
+
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/sql_database_instance
+# Create PostgreSQL Database
 resource "google_sql_database_instance" "instance" {
   provider         = google-beta
   project          = var.project_id
@@ -65,6 +78,9 @@ resource "google_sql_database_instance" "instance" {
   }
   deletion_protection = false
 }
+
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/sql_user
+# Create SQL user for Airflow 
 resource "google_sql_user" "users" {
   name       = "airflow"
   instance   = google_sql_database_instance.instance.name
@@ -73,6 +89,8 @@ resource "google_sql_user" "users" {
 
 }
 
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/sql_database
+# Create Database for Airflow metadata
 resource "google_sql_database" "database" {
   name       = var.postgres_database_name
   instance   = google_sql_database_instance.instance.name
@@ -84,6 +102,8 @@ resource "google_sql_database" "database" {
 #### CLUSTER ####
 #################
 
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/container_cluster
+# Create GKE Cluester
 resource "google_container_cluster" "primary" {
   name                     = var.cluster_name
   location                 = var.region
@@ -99,6 +119,8 @@ resource "google_container_cluster" "primary" {
   depends_on = [google_service_networking_connection.private_vpc_connection]
 }
 
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/container_node_pool
+# Create kubernetes nodepool for webserver and workers
 resource "google_container_node_pool" "webserver_nodepool" {
   name           = var.webserver_nodepool["name"]
   location       = var.region
@@ -142,7 +164,8 @@ resource "google_container_node_pool" "worker_nodepool" {
 #############
 #### NFS ####
 #############
-
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_disk
+# Create NFS Disk for Airflow logs
 resource "google_compute_disk" "nfs-disk" {
   name                      = var.nfs_disk["name"]
   type                      = var.nfs_disk["type"]
@@ -157,12 +180,16 @@ resource "google_compute_disk" "nfs-disk" {
 #### DNS ####
 #############
 
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_address
+# Reserve static IP
 resource "google_compute_address" "static" {
   name       = var.cluster_name
   region     = var.region
   depends_on = [google_container_node_pool.webserver_nodepool]
 }
 
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/dns_record_set
+# Add record to DNS if it exist
 {% if cookiecutter.domain!=None %}
 resource "google_dns_record_set" "type_a" {
   name         = "${var.subdomain_name}.${var.domain_name}."
@@ -175,6 +202,7 @@ resource "google_dns_record_set" "type_a" {
 }
 {% endif %}
 
+# Dashboard to monitor kubernetes cluster
 data "template_file" "convert-json-template" {
   template = file("./dashboard.tpl")
 
@@ -183,6 +211,7 @@ data "template_file" "convert-json-template" {
   }
 }
 
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/monitoring_dashboard
 resource "google_monitoring_dashboard" "dashboard" {
   dashboard_json = data.template_file.convert-json-template.rendered
 }
@@ -192,6 +221,8 @@ resource "google_monitoring_dashboard" "dashboard" {
 #### SECRETS ####
 #################
 
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/secret_manager_secret
+# Create secrets in gcp for connection string, passwor for airflow UI, fernet key
 resource "google_secret_manager_secret" "postgress_connection_string" {
   secret_id = "{{cookiecutter.workspace}}-postgress_conn_string"
   replication {
@@ -212,7 +243,7 @@ resource "google_secret_manager_secret" "fernet_key" {
     automatic = true
   }
 }
-
+# Generate random passwor, fernet_key 
 resource "random_password" "admin_password" {
   length           = 10
   special          = true
@@ -225,6 +256,8 @@ resource "random_password" "fernet_key" {
   override_special = "!%@#$"
 }
 
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/secret_manager_secret_version
+# Secrets injection to Secret Manager
 resource "google_secret_manager_secret_version" "postgress_connection_string" {
   secret      = google_secret_manager_secret.postgress_connection_string.id
   secret_data = "${var.postgres_user_name}:${var.postgres_user_password}@airflow-pgbouncer/${var.postgres_database_name}"
@@ -244,7 +277,7 @@ resource "google_secret_manager_secret_version" "fernet_key" {
 ##########################
 #### SELF SIGNED CERT ####
 ##########################
-
+# Generate .crt, ,key, .pem
 {% if cookiecutter.cert_name==None %}
 resource "null_resource" "cert" {
   provisioner "local-exec" {

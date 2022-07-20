@@ -1,3 +1,4 @@
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/storage_bucket
 # Run once to create storage for terraform remote state backend
  
 resource "google_storage_bucket" "tf_remote_backend" {

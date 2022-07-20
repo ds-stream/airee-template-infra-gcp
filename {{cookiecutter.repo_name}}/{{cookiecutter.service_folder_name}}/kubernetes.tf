@@ -25,14 +25,18 @@ terraform {
   }
 }
 
+# Use this data source to access the configuration of the Google Cloud provider.
 data "google_client_config" "default" {}
 
+# https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs
 provider "kubernetes" {
   host                   = "https://${google_container_cluster.primary.endpoint}"
   token                  = data.google_client_config.default.access_token
   cluster_ca_certificate = base64decode(google_container_cluster.primary.master_auth[0].cluster_ca_certificate)
 }
 
+# https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace
+# Creating 'airflow' namespace to deploy airflow yamls
 resource "kubernetes_namespace" "airflow_cluster" {
   metadata {
     name = var.namespace
@@ -40,6 +44,8 @@ resource "kubernetes_namespace" "airflow_cluster" {
   depends_on = [google_container_node_pool.webserver_nodepool]
 }
 
+# https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map
+# Config map stores Database connection params created in terraform process.
 resource "kubernetes_config_map" "airflow_cluster" {
   metadata {
     name      = "postgres-config"
@@ -60,7 +66,8 @@ resource "kubernetes_config_map" "airflow_cluster" {
   ]
 }
 
-
+# https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/service
+# Service expose to static IP reserved in terraform process
 resource "kubernetes_service" "airflow_service" {
   metadata {
     name = "airflow-webserver"
@@ -92,12 +99,13 @@ resource "kubernetes_service" "airflow_service" {
 #######################
 
 # Workload identity service account for flux
-
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/google_service_account
 resource "google_service_account" "workload-identity-user-sa" {
   account_id   = var.workload_identity_user
   display_name = "Service Account For Flux to access GCR"
 }
 
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/google_project_iam
 resource "google_project_iam_member" "gcr-pull-role" {
   role = "roles/storage.objectViewer" 
   member = "serviceAccount:${google_service_account.workload-identity-user-sa.email}"
@@ -122,11 +130,13 @@ resource "google_project_iam_member" "workload_identity-role" {
 #     ]
 # }
 
+# https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep
 resource "time_sleep" "wait_for_permissions" {
   depends_on = [google_service_account.workload-identity-user-sa]
   create_duration = "120s"
 }
 
+#https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/service_account_access_token
 data "google_service_account_access_token" "default" {
   target_service_account = "${google_service_account.workload-identity-user-sa.email}"
   scopes                 = ["cloud-platform"]
@@ -135,6 +145,7 @@ data "google_service_account_access_token" "default" {
   ]
 }
 
+#https://registry.terraform.io/providers/hashicorp/template/latest/docs/data-sources/file
 data "template_file" "docker_config_script" {
   template = "${file("${path.module}/kube_docker_registry_config.json")}"
   vars = {
@@ -145,6 +156,7 @@ data "template_file" "docker_config_script" {
   }
 }
 
+# https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret
 resource "kubernetes_secret" "docker-registry" {
   metadata {
     name = "gcr-credentials"
@@ -162,17 +174,22 @@ resource "kubernetes_secret" "docker-registry" {
 # Flux
 provider "flux" {}
 
+# https://registry.terraform.io/providers/fluxcd/flux/latest/docs/data-sources/install
+# Used to generate Kubernetes manifests for deploying Flux.
 data "flux_install" "main" {
   target_path      = var.target_path
   components_extra = ["image-reflector-controller", "image-automation-controller"]
 }
 
+# https://registry.terraform.io/providers/fluxcd/flux/latest/docs/data-sources/sync
+# Used to generate manifests for reconciling the specified repository path on the cluster.
 data "flux_sync" "main" {
   target_path = var.target_path
   url         = "ssh://git@github.com/${var.organization}/${var.repository_name}.git"
   branch      = var.branch
 }
 
+# https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs#configuration
 provider "kubectl" {
   host                   = "https://${google_container_cluster.primary.endpoint}"
   token                  = data.google_client_config.default.access_token
@@ -180,6 +197,8 @@ provider "kubectl" {
   load_config_file       = false
 }
 
+# https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace
+# Creating 'flux-system' namespace to deploy flux components
 resource "kubernetes_namespace" "flux_system" {
   metadata {
     name = var.flux_namespace
@@ -192,14 +211,19 @@ resource "kubernetes_namespace" "flux_system" {
   }
 }
 
+# https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/data-sources/kubectl_file_documents
+# This provider provides a data resource kubectl_file_documents to enable ease of splitting multi-document yaml content.
+# Get a list of flux yamls to be installed
 data "kubectl_file_documents" "install" {
   content = data.flux_install.main.content
 }
-
+# Get the repo URL for syncing
 data "kubectl_file_documents" "sync" {
   content = data.flux_sync.main.content
 }
 
+# https://www.terraform.io/language/values/locals
+# A local value assigns a name to an expression, so you can use the name multiple times within a module instead of repeating the expression.
 locals {
   install = [for v in data.kubectl_file_documents.install.documents : {
     data : yamldecode(v)
@@ -213,6 +237,8 @@ locals {
   ]
 }
 
+# https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/kubectl_manifest
+# Install Flux manifests
 resource "kubectl_manifest" "install" {
   depends_on = [kubernetes_namespace.flux_system]
   for_each   = { for v in local.install : lower(join("/", compact([v.data.apiVersion, v.data.kind, lookup(v.data.metadata, "namespace", ""), v.data.metadata.name]))) => v.content }
@@ -225,15 +251,21 @@ resource "kubectl_manifest" "sync" {
   yaml_body  = each.value
 }
 
+# https://www.terraform.io/language/values/locals
+# A local value assigns a name to an expression, so you can use the name multiple times within a module instead of repeating the expression.
 locals {
   known_hosts = "github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg="
 }
 
+# https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key
+# Creates a PEM (and OpenSSH) formatted private key for Github.
 resource "tls_private_key" "github_deploy_key" {
   algorithm   = "ECDSA"
   ecdsa_curve = "P256"
 }
 
+# https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret
+# Create kubernetes secret with Github information for flux
 resource "kubernetes_secret" "main" {
   depends_on = [kubectl_manifest.install]
 
@@ -255,11 +287,14 @@ provider "github" {
   owner = var.organization
 }
 
+# https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/repository
 # To make sure the repository exists and the correct permissions are set.
 data "github_repository" "main" {
   full_name = "${var.organization}/${var.repository_name}"
 }
 
+# https://registry.terraform.io/providers/integrations/github/latest/docs/resources/repository_file
+# Allows you to create and manage files within a GitHub repository.
 resource "github_repository_file" "install" {
   repository          = data.github_repository.main.name
   file                = data.flux_install.main.path
@@ -284,6 +319,7 @@ resource "github_repository_file" "kustomize" {
   overwrite_on_create = true
 }
 
+# https://registry.terraform.io/providers/integrations/github/latest/docs/resources/repository_deploy_key
 # For flux to fetch source
 resource "github_repository_deploy_key" "flux" {
   title      = var.github_deploy_key_title
