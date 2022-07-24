@@ -14,11 +14,9 @@ jobs:
     - name: define repo path
       run: echo "GIT_REPO=$(echo ${GITHUB_REPOSITORY} | sed -e 's/infra_{{cookiecutter.env}}/app_{{cookiecutter.env}}/g')" >> $GITHUB_ENV
     - name: trigger build image
-      env: 
-        TF_VAR_github_token: {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %}
       run: |
          curl -X POST \
-         -H "Authorization: token ${{ secrets.TF_VAR_github_token }}" \
+         -H "Authorization: token {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %} \
          --url https://api.github.com/repos/${GIT_REPO}/actions/workflows/${WORKFLOW_ID}/dispatches \
          -d '{"ref":"main"}'
     - name: bash sync_cloud.sh
