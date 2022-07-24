@@ -16,7 +16,7 @@ jobs:
     - name: trigger build image
       run: |
          curl -X POST \
-         -H "Authorization: token {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %} \
+         -H "Authorization: token {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %}" \
          --url https://api.github.com/repos/${GIT_REPO}/actions/workflows/${WORKFLOW_ID}/dispatches \
          -d '{"ref":"main"}'
     - name: bash sync_cloud.sh
