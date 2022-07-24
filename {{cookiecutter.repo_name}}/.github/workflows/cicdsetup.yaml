@@ -2,12 +2,23 @@ name: Set up infrastructure CI/CD
 on:
   workflow_dispatch:
 
+env:
+   WORKFLOW_ID: build_image_web.yaml
+
 jobs:
   set_up_infra:    
     runs-on: [self-hosted,{{cookiecutter.labels}}]
     steps:
     - name: checkout repository
       uses: actions/checkout@v3
+    - name: define repo path
+      run: echo "GIT_REPO=$(echo ${GITHUB_REPOSITORY} | sed -e 's/infra_{{cookiecutter.env}}/app_{{cookiecutter.env}}/g')" >> $GITHUB_ENV
+    - name: trigger build image
+      run: |
+         curl -X POST \
+         -H "Authorization: token ${{ secrets.TF_VAR_github_token }}" \
+         --url https://api.github.com/repos/${GIT_REPO}/actions/workflows/${WORKFLOW_ID}/dispatches \
+         -d '{"ref":"main"}'
     - name: bash sync_cloud.sh
       env: 
         TF_VAR_github_token: {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %}

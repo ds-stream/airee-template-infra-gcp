@@ -327,41 +327,41 @@ openssl x509 -req -passin pass:$rnd  -in ./Certs/csr.csr -CA ./Certs/cert.pem -C
 # 7. Send data to gcloud
 
 # CRT
-list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}_ariee_cert")
+list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}-airee_cert")
 if [[ $list_of_secrets != "" ]]
 then
-    echo "Secret {{cookiecutter.workspace}}_ariee_cert exists, add new version"
-    gcloud secrets versions add "{{cookiecutter.workspace}}_ariee_cert" \
+    echo "Secret {{cookiecutter.workspace}}-airee_cert exists, add new version"
+    gcloud secrets versions add "{{cookiecutter.workspace}}-airee_cert" \
         --data-file=./Certs/certificate.crt
 else
-    echo "Secret {{cookiecutter.workspace}}_ariee_cert not exists, creating"
-    gcloud secrets create "{{cookiecutter.workspace}}_ariee_cert" \
+    echo "Secret {{cookiecutter.workspace}}-airee_cert not exists, creating"
+    gcloud secrets create "{{cookiecutter.workspace}}-airee_cert" \
         --data-file=./Certs/certificate.crt
 fi
 
 #KEY
-list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}_ariee_key")
+list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}-airee_key")
 if [[ $list_of_secrets != "" ]]
 then
-    echo "Secret {{cookiecutter.workspace}}_ariee_key exists, add new version"
-    gcloud secrets versions add "{{cookiecutter.workspace}}_ariee_key" \
+    echo "Secret {{cookiecutter.workspace}}-airee_key exists, add new version"
+    gcloud secrets versions add "{{cookiecutter.workspace}}-airee_key" \
         --data-file=./Certs/key.key
 else
-    echo "Secret {{cookiecutter.workspace}}_ariee_key not exists, creating"
-    gcloud secrets create "{{cookiecutter.workspace}}_ariee_key" \
+    echo "Secret {{cookiecutter.workspace}}-airee_key not exists, creating"
+    gcloud secrets create "{{cookiecutter.workspace}}-airee_key" \
         --data-file=./Certs/key.key
 fi
 
 #PEM
-list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}_ariee_pem")
+list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}-airee_pem")
 if [[ $list_of_secrets != "" ]]
 then
-    echo "Secret {{cookiecutter.workspace}}_ariee_pem exists, add new version"
-    gcloud secrets versions add "{{cookiecutter.workspace}}_ariee_pem" \
+    echo "Secret {{cookiecutter.workspace}}-airee_pem exists, add new version"
+    gcloud secrets versions add "{{cookiecutter.workspace}}-airee_pem" \
         --data-file=./Certs/cert.pem
 else
-    echo "Secret {{cookiecutter.workspace}}_ariee_pem not exists, creating"
-    gcloud secrets create "{{cookiecutter.workspace}}_ariee_pem" \
+    echo "Secret {{cookiecutter.workspace}}-airee_pem not exists, creating"
+    gcloud secrets create "{{cookiecutter.workspace}}-airee_pem" \
         --data-file=./Certs/cert.pem
 fi
 

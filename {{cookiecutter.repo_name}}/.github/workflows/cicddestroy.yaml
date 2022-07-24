@@ -12,5 +12,7 @@ jobs:
       env:
         TF_VAR_github_token: {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %}
       run: bash sync_cloud.sh
-    # - name: cleaning secrets
-    #   run: for name_secret in `gcloud secrets list --filter={{cookiecutter.workspace}}- --uri`; do gcloud secrets delete -q $name_secret; done
+    - name: Cleaning secrets
+      run: for name_secret in `gcloud secrets list --filter={{cookiecutter.workspace}}- --uri`; do gcloud secrets delete -q $name_secret; done
+    - name: Cleaning images
+      run: for name_images in `gcloud container images list-tags gcr.io/{{cookiecutter.project_id}}/{{cookiecutter.workspace}} --format="get(digest)"`; do gcloud container images delete gcr.io/{{cookiecutter.project_id}}/{{cookiecutter.workspace}}@$name_images --force-delete-tags --quiet; done
