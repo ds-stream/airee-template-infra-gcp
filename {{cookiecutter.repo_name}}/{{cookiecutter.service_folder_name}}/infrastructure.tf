@@ -116,7 +116,7 @@ resource "google_container_cluster" "primary" {
   workload_identity_config {
     workload_pool = "${var.project_id}.svc.id.goog"
   }
-  depends_on = [google_service_networking_connection.private_vpc_connection]
+  depends_on = [google_service_networking_connection.private_vpc_connection, google_compute_disk.nfs-disk]
 }
 
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/container_node_pool
@@ -172,7 +172,6 @@ resource "google_compute_disk" "nfs-disk" {
   zone                      = var.zone
   size                      = var.nfs_disk["size"]
   physical_block_size_bytes = 4096
-  depends_on                = [google_container_cluster.primary]
 }
 
 
