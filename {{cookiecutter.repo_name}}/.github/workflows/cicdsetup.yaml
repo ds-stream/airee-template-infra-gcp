@@ -83,6 +83,6 @@ jobs:
       run: |
          curl -X POST \
          -H "Authorization: token {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %}" \
-         --url https://api.github.com/repos/{{ cookiecutter.workspace }}_workspace_data_{{ cookiecutter.env }}/actions/workflows/${WORKSPACE_ACTION}/dispatches \
+         --url https://api.github.com/repos/{{ cookiecutter.org }}/{{ cookiecutter.workspace }}_workspace_data_{{ cookiecutter.env }}/actions/workflows/${WORKSPACE_ACTION}/dispatches \
          -d '{"ref":"main"}'
 {% endif %}
