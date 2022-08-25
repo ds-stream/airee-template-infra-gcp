@@ -4,7 +4,7 @@ on:
 
 env:
    WORKFLOW_ID: build_image_web.yaml
-   {% if cookiecutter.nfs_dags==None %}WORKSPACE_ACTION: trigger_build_image.yaml
+   {% if cookiecutter.nfs_dags!=None %}WORKSPACE_ACTION: add_dags.yaml
    {% endif %}
 
 jobs:
@@ -78,7 +78,7 @@ jobs:
           fi
          fi
          done
-{% if cookiecutter.nfs_dags==None %}
+{% if cookiecutter.nfs_dags!=None %}
     - name: trigger copy dags on nfs
       run: |
          curl -X POST \
