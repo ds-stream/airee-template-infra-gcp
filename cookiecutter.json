@@ -17,6 +17,7 @@
     "tf_backend": "tf_airkube_backend",
     "domain": null,
     "dns_zone": null,
-    "cert_name": null
+    "cert_name": null,
+    "nfs_dags": null
 }
 
