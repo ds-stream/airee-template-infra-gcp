@@ -10,7 +10,7 @@
     "cluster_name": "airflow-cluster",
     "airflow_performance": ["small", "standard", "large"],
     "_namespace": "airflow",
-    "workspace": "test",
+    "workspace": "test2",
     "env": "dev",
     "org": "DsAirKube",
     "labels": "airflow",
