@@ -10,13 +10,14 @@
     "cluster_name": "airflow-cluster",
     "airflow_performance": ["small", "standard", "large"],
     "_namespace": "airflow",
-    "workspace": "test",
+    "workspace": "test2",
     "env": "dev",
     "org": "DsAirKube",
     "labels": "airflow",
     "tf_backend": "tf_airkube_backend",
     "domain": null,
     "dns_zone": null,
-    "cert_name": null
+    "cert_name": null,
+    "nfs_dags": null
 }
 
