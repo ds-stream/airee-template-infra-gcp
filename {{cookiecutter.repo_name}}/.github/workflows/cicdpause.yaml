@@ -1,0 +1,46 @@
+name: Start pause infrastructure CI/CD
+on:
+  workflow_dispatch:
+
+jobs:
+  pause_infra:    
+    runs-on: [self-hosted,{{cookiecutter.labels}}]
+    steps:
+    - name: checkout repository
+      uses: actions/checkout@v3
+    - name: change replicas in app
+      run: |
+        git clone https://oauth2:{% raw %}${{ secrets.TF_VAR_GITHUB_TOKEN }}{% endraw %}@github.com/{{ cookiecutter.org }}/{{ cookiecutter.workspace }}_app_{{ cookiecutter.env }}.git
+        if [[ `grep -w "replicas: 0" {{ cookiecutter.workspace }}_app_{{ cookiecutter.env }}/yamles/airflow_worker_deployment.yaml` ]]
+        then
+          echo "replicas 0 already" && exit 0
+        else
+          sed -i '/^  replicas/ s/./#&/' {{ cookiecutter.workspace }}_app_{{ cookiecutter.env }}/yamles/airflow_worker_deployment.yaml
+          sed -i '/^#  replicas/a \ \ replicas: 0' {{ cookiecutter.workspace }}_app_{{ cookiecutter.env }}/yamles/airflow_worker_deployment.yaml
+          cd {{ cookiecutter.workspace }}_app_{{ cookiecutter.env }}
+          git add yamles/airflow_worker_deployment.yaml
+          git config user.name "pause agent infra"
+          git commit -m "start pause infra [skip ci]"
+          git push
+          cd ..
+        fi
+    - name: finding a line number with a replica
+      run: echo "NUMBER_LINE=$(expr `grep -n "taint        = \"worker\"" service/variables.tf | cut -f1 -d:` + 1)" >> $GITHUB_ENV;
+    - name: replacing a number worker
+      run: |
+        if [[ `awk '/node_count   = 0/ && NR = $NUMBER_LINE' service/variables.tf` ]]
+        then
+          echo "replicas 0 already" && exit 0
+        else
+          sed -i "$NUMBER_LINE s/./#&/" service/variables.tf
+          sed -i '/taint        = "worker"/a     node_count   = 0' service/variables.tf
+          sed -i "$NUMBER_LINE s/./    &/" service/variables.tf
+          git add service/variables.tf
+          git config user.name "pause agent infra"
+          git commit -m "start pause infra [skip ci]"
+          git push https://oauth2:{% raw %}${{ secrets.TF_VAR_GITHUB_TOKEN }}{% endraw %}@github.com/{{ cookiecutter.org }}/{{ cookiecutter.workspace }}_infra_{{ cookiecutter.env }}.git
+        fi
+    - name: start terraform
+      env: 
+        TF_VAR_github_token: {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %}
+      run: bash sync_cloud.sh

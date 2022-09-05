@@ -19,6 +19,17 @@ jobs:
         -d '{"ref":"main"}'
         }
 
-        if [ "${status}" == "up" ]; then trigger_workflow "cicdsetup.yaml" && echo "Setting up the cluster has been started"
-        else trigger_workflow "cicddestroy.yaml" && echo "Destroying the cluster has been started"
-        fi
+        case "${status}" in
+            "up") 
+                trigger_workflow "cicdsetup.yaml" && echo "Setting up the cluster has been started"
+                ;;
+            "down")
+                trigger_workflow "cicddestroy.yaml" && echo "Destroying the cluster has been started"
+                ;;
+            "pause")
+                trigger_workflow "cicdpause.yaml" && echo "Pausing the cluster has been started"
+                ;;
+            ?)
+                echo "incorrect argument"
+                ;;
+        esac

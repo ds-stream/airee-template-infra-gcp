@@ -6,11 +6,19 @@ for env in $(cat status.json | jq -r "to_entries|map(\"\(.key)=\(.value|tostring
 gcloud config set project {{cookiecutter.project_id}}
 
 #sync infr
-if [ "${status}" == "up" ]; then
-	cd service && terraform init && terraform apply --auto-approve
-elif [ "${status}" == "down" ]; then
-	gcloud container clusters get-credentials {{cookiecutter.cluster_name}}-{{cookiecutter.workspace}} --region {{cookiecutter.region}} --project {{cookiecutter.project_id}} && \
-	cd service && terraform init && sh ../destroy_infra.sh
-else 
-     echo "Json status does not allow to apply changes"
-fi
+
+case "${status}" in
+	"up") 
+    	cd service && terraform init && terraform apply --auto-approve
+        ;;
+    "down")
+        gcloud container clusters get-credentials {{cookiecutter.cluster_name}}-{{cookiecutter.workspace}} --region {{cookiecutter.region}} --project {{cookiecutter.project_id}} && \
+		cd service && terraform init && sh ../destroy_infra.sh
+        ;;
+    "pause")
+        cd service && terraform init && terraform apply --auto-approve
+        ;;
+    ?)
+        echo "Json status does not allow to apply changes"
+        ;;
+esac
