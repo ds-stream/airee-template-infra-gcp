@@ -21,6 +21,7 @@ jobs:
         then
           sed -i "${NUMBER_LINE} d" service/variables.tf
           sed -i "${NUMBER_LINE} s/^#//" service/variables.tf
+          git pull
           git add service/variables.tf
           git config user.name "pause agent infra"
           git commit -m "start unpause infra [skip ci]"
@@ -48,6 +49,7 @@ jobs:
           sed -i '/^  replicas\: 0/d' {{ cookiecutter.workspace }}_app_{{ cookiecutter.env }}/yamles/airflow_worker_deployment.yaml
           sed -i '/#  replicas/s/^#//' {{ cookiecutter.workspace }}_app_{{ cookiecutter.env }}/yamles/airflow_worker_deployment.yaml
           cd {{ cookiecutter.workspace }}_app_{{ cookiecutter.env }}
+          git pull
           git add yamles/airflow_worker_deployment.yaml
           git config user.name "pause agent infra"
           git commit -m "start unpause infra [skip ci]"
@@ -78,11 +80,12 @@ jobs:
          done      
     - name: check pods
       run: |
+         wait_s=10
          max_retries=20
          for i in pgbouncer airflow-redis airflow-scheduler airflow-webserver airflow-worker ; do
          until kubectl wait --timeout=10s --for=condition=ready pods -n airflow -l app=$i
          do echo "waiting for $i"
-            ((a=a+1)) && echo "retries number ${a}" 
+            ((a=a+1)) && echo "retries number ${a}" ; sleep ${wait_s}
             if [ ${a} -eq ${max_retries} ] ; then
                 echo "The maximum number of retries has been reached" && exit 1
             fi
