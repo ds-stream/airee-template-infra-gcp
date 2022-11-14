@@ -12,7 +12,7 @@ case "${status}" in
     	cd service && terraform init && terraform apply --auto-approve
         ;;
     "down")
-        gcloud container clusters get-credentials {{cookiecutter.cluster_name}}-{{cookiecutter.workspace}} --region {{cookiecutter.region}} --project {{cookiecutter.project_id}} && \
+        gcloud container clusters get-credentials {{cookiecutter.cluster_name}}-{{cookiecutter.workspace}}-{{cookiecutter.env}} --region {{cookiecutter.region}} --project {{cookiecutter.project_id}} && \
 		cd service && terraform init && sh ../destroy_infra.sh
         ;;
     "pause")
