@@ -11,10 +11,10 @@ variable "zone" {
 
 ################   VPC   ######################
 variable "private_network_name" {
-  default = "{{cookiecutter.network_name}}-{{cookiecutter.workspace}}"
+  default = "{{cookiecutter.network_name}}-{{cookiecutter.workspace}}-{{cookiecutter.env}}"
 }
 variable "private-ip-address_name" {
-  default = "private-ip-address-{{cookiecutter.workspace}}"
+  default = "private-ip-address-{{cookiecutter.workspace}}-{{cookiecutter.env}}"
 }
 
 ###############  DOMAIN  #####################
@@ -23,7 +23,7 @@ variable "dns_zone_name" {
   default = "{{cookiecutter.dns_zone}}"
 }
 variable "subdomain_name" {
-  default = "{{cookiecutter.workspace}}"
+  default = "{{cookiecutter.workspace}}-{{cookiecutter.env}}"
 }
 variable "domain_name" {
   default = "{{cookiecutter.domain}}"
@@ -31,7 +31,7 @@ variable "domain_name" {
 
 ###########   POSTGRES SQL   ##################
 variable "database_instance_name" {
-  default = "{{cookiecutter.database_instance_name}}-{{cookiecutter.workspace}}"
+  default = "{{cookiecutter.database_instance_name}}-{{cookiecutter.workspace}}-{{cookiecutter.env}}"
 }
 variable "database_instance_version" {
   default = "POSTGRES_13"
@@ -49,7 +49,7 @@ variable "postgres_user_password" {
 ###########   WORDLOAD $ SA   #################
 
 variable "workload_identity_user" {
-  default = "wi-user-sa-{{cookiecutter.workspace}}"
+  default = "wi-usr-{{cookiecutter.workspace}}-{{cookiecutter.env}}"
 }
 
 ###########   GKE CLUSTER   ###################
@@ -80,7 +80,7 @@ variable "worker_nodepool" {
   }
 }
 variable "cluster_name" {
-  default = "{{cookiecutter.cluster_name}}-{{cookiecutter.workspace}}"
+  default = "{{cookiecutter.cluster_name}}-{{cookiecutter.workspace}}-{{cookiecutter.env}}"
 }
 variable "namespace" {
   default = "{{cookiecutter._namespace}}"
@@ -90,7 +90,7 @@ variable "namespace" {
 variable "nfs_disk" {
   type = map(any)
   default = {
-    name  = "nfs-disk-{{cookiecutter.workspace}}"
+    name  = "nfs-disk-{{cookiecutter.workspace}}-{{cookiecutter.env}}"
     type  = "pd-standard"
     size  = 10    
   }
