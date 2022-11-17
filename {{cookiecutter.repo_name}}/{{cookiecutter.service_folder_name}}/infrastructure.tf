@@ -230,7 +230,7 @@ resource "google_secret_manager_secret" "postgress_connection_string" {
 }
 
 resource "google_secret_manager_secret" "admin_password" {
-  secret_id = "{{cookiecutter.workspace}}--{{cookiecutter.env}}admin_password"
+  secret_id = "{{cookiecutter.workspace}}-{{cookiecutter.env}}-admin_password"
   replication {
     automatic = true
   }
