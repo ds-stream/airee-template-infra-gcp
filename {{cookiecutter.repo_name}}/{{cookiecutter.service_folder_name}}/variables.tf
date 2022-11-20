@@ -34,7 +34,7 @@ variable "database_instance_name" {
   default = "{{cookiecutter.database_instance_name}}-{{cookiecutter.workspace}}-{{cookiecutter.env}}"
 }
 variable "database_instance_version" {
-  default = "POSTGRES_13"
+  default = "POSTGRES_14"
 }
 variable "postgres_database_name" {
   default = "airflow_db"
