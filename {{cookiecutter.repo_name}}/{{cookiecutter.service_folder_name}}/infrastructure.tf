@@ -292,51 +292,28 @@ resource "null_resource" "cert" {
     command     = <<EOT
 mkdir -p ./Certs
 
-# 0. Generate random password for generate priv key and pem file
-rnd=`openssl rand -base64 32`
-subj="/C=$CountryName/ST=$StateOrProvinceName/L=$LocalityName/O=$OrganizationName/CN=$CommonName"
-
-# 1. Generate private key
-openssl genrsa -passout pass:$rnd -des3 -out ./Certs/private.key 2048
-
-# 2. Generate root certificate
-openssl req -x509 -new -nodes -passin pass:$rnd -subj "$subj" -key ./Certs/private.key -sha256 -days 825 -out ./Certs/cert.pem
-
-# 3. Generate a private key
-openssl genrsa -out ./Certs/key.key 2048
-
-# 4. Create a certificate-signing requesta
-openssl req -new -subj "$subj" -key ./Certs/key.key -out ./Certs/csr.csr
-
-# 5. Create a config file for the extensions
->./Certs/extensions.ext cat <<-EOF
-authorityKeyIdentifier=keyid,issuer
-basicConstraints=CA:FALSE
-keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+echo "[req]
+default_bits  = 2048
+distinguished_name = req_distinguished_name
+req_extensions = req_ext
+x509_extensions = v3_req
+prompt = no
+[req_distinguished_name]
+countryName = $CountryName
+stateOrProvinceName = N/A
+localityName = N/A
+organizationName = Self-signed certificate
+commonName = ${google_compute_address.static.address}: Self-signed certificate
+[req_ext]
+subjectAltName = @alt_names
+[v3_req]
 subjectAltName = @alt_names
 [alt_names]
 IP.1 = ${google_compute_address.static.address}
-EOF
+" > ./Certs/san.cnf
 
-# 6. Create the signed certificate
+openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout ./Certs/key.pem -out ./Certs/cert.pem -config ./Certs/san.cnf
 
-openssl x509 -req -passin pass:$rnd  -in ./Certs/csr.csr -CA ./Certs/cert.pem -CAkey ./Certs/private.key -CAcreateserial \
--out ./Certs/certificate.crt -days 825 -sha256 -extfile ./Certs/extensions.ext
-
-# 7. Send data to gcloud
-
-# CRT
-list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_cert")
-if [[ $list_of_secrets != "" ]]
-then
-    echo "Secret {{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_cert exists, add new version"
-    gcloud secrets versions add "{{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_cert" \
-        --data-file=./Certs/certificate.crt
-else
-    echo "Secret {{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_cert not exists, creating"
-    gcloud secrets create "{{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_cert" \
-        --data-file=./Certs/certificate.crt
-fi
 
 #KEY
 list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_key")
@@ -344,14 +321,14 @@ if [[ $list_of_secrets != "" ]]
 then
     echo "Secret {{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_key exists, add new version"
     gcloud secrets versions add "{{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_key" \
-        --data-file=./Certs/key.key
+        --data-file=./Certs/key.pem
 else
     echo "Secret {{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_key not exists, creating"
     gcloud secrets create "{{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_key" \
-        --data-file=./Certs/key.key
+        --data-file=./Certs/key.pem
 fi
 
-#PEM
+#CERT
 list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_pem")
 if [[ $list_of_secrets != "" ]]
 then
@@ -364,7 +341,7 @@ else
         --data-file=./Certs/cert.pem
 fi
 
-# 8. Delete all files
+# Delete all files
 rm -r ./Certs/
 
 EOT
