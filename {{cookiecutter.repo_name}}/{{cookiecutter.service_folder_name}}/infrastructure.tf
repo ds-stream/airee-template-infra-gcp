@@ -329,15 +329,15 @@ else
 fi
 
 #CERT
-list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_pem")
+list_of_secrets=$(gcloud secrets list --filter="name:{{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_cert")
 if [[ $list_of_secrets != "" ]]
 then
-    echo "Secret {{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_pem exists, add new version"
-    gcloud secrets versions add "{{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_pem" \
+    echo "Secret {{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_cert exists, add new version"
+    gcloud secrets versions add "{{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_cert" \
         --data-file=./Certs/cert.pem
 else
-    echo "Secret {{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_pem not exists, creating"
-    gcloud secrets create "{{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_pem" \
+    echo "Secret {{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_cert not exists, creating"
+    gcloud secrets create "{{cookiecutter.workspace}}-{{cookiecutter.env}}-airee_cert" \
         --data-file=./Certs/cert.pem
 fi
 
