@@ -282,12 +282,6 @@ resource "null_resource" "cert" {
   provisioner "local-exec" {
     environment = {
       CountryName            = "PL"
-      StateOrProvinceName    = "Masovian"
-      LocalityName           = "Warsaw"
-      OrganizationName       = "Org Name"
-      OrganizationalUnitName = "Org Unit"
-      CommonName             = ""
-      EmailAddress           = ""
     }
     command     = <<EOT
 mkdir -p ./Certs
