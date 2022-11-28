@@ -107,6 +107,10 @@ resource "google_sql_database" "database" {
 resource "google_container_cluster" "primary" {
   name                     = var.cluster_name
   location                 = var.region
+  min_master_version       = "1.24.5-gke.600"
+  release_channel {
+    channel = "REGULAR"
+  } 
   remove_default_node_pool = true
   initial_node_count       = 1
   networking_mode          = "VPC_NATIVE"
