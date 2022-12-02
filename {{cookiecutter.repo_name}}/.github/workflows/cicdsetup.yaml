@@ -26,17 +26,24 @@ jobs:
           git config user.name "pause agent infra"
           git commit -m "start unpause infra [skip ci]"
           git push https://oauth2:{% raw %}${{ secrets.TF_VAR_GITHUB_TOKEN }}{% endraw %}@github.com/DsAirKube/{{ cookiecutter.workspace }}_infra_{{ cookiecutter.env }}.git
+          echo "PAUSE=true" >> $GITHUB_ENV
         else
-          echo "replica is not set to 0" && exit 0
+          echo "replica is not set to 0" && echo "PAUSE=false" >> $GITHUB_ENV && exit 0
         fi
     - name: define repo path
       run: echo "GIT_REPO=$(echo ${GITHUB_REPOSITORY} | sed -e 's/infra_{{cookiecutter.env}}/app_{{cookiecutter.env}}/g')" >> $GITHUB_ENV
     - name: trigger build image
       run: |
+        if [[ "$PAUSE" = "false" ]]
+        then
          curl -X POST \
          -H "Authorization: token {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %}" \
          --url https://api.github.com/repos/${GIT_REPO}/actions/workflows/${WORKFLOW_ID}/dispatches \
          -d '{"ref":"main"}'
+          echo "image build is triggered"
+        else
+          echo "image build is not triggered"
+        fi
     - name: bash sync_cloud.sh
       env: 
         TF_VAR_github_token: {% raw %}${{ secrets.TF_VAR_github_token }}{% endraw %}
