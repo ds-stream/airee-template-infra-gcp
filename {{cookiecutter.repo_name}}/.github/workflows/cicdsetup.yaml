@@ -25,7 +25,7 @@ jobs:
           git add service/variables.tf
           git config user.name "pause agent infra"
           git commit -m "start unpause infra [skip ci]"
-          git push https://oauth2:{% raw %}${{ secrets.TF_VAR_GITHUB_TOKEN }}{% endraw %}@github.com/DsAirKube/{{ cookiecutter.workspace }}_infra_{{ cookiecutter.env }}.git
+          git push https://oauth2:{% raw %}${{ secrets.TF_VAR_GITHUB_TOKEN }}{% endraw %}@github.com/{{ cookiecutter.org }}/{{ cookiecutter.workspace }}_infra_{{ cookiecutter.env }}.git
           echo "PAUSE=true" >> $GITHUB_ENV
         else
           echo "replica is not set to 0" && echo "PAUSE=false" >> $GITHUB_ENV && exit 0
