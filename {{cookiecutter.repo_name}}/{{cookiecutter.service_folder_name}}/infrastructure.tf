@@ -107,7 +107,7 @@ resource "google_sql_database" "database" {
 resource "google_container_cluster" "primary" {
   name                     = var.cluster_name
   location                 = var.region
-  min_master_version       = "1.24.5-gke.600"
+  min_master_version       = "1.24.9-gke.2000"
   release_channel {
     channel = "REGULAR"
   } 
