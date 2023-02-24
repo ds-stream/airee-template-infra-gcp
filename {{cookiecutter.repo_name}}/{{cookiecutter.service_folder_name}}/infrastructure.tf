@@ -254,9 +254,9 @@ resource "random_password" "admin_password" {
 }
 
 resource "random_password" "fernet_key" {
-  length           = 45
-  special          = true
-  override_special = "!%@#$"
+  length           = 32
+  special          = false
+  override_special = "_-"
 }
 
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/secret_manager_secret_version
@@ -273,7 +273,7 @@ resource "google_secret_manager_secret_version" "admin_password" {
 
 resource "google_secret_manager_secret_version" "fernet_key" {
   secret      = google_secret_manager_secret.fernet_key.id
-  secret_data = random_password.fernet_key.result
+  secret_data = base64urlencode(random_password.fernet_key.result)
 }
 
 
