@@ -273,7 +273,7 @@ resource "google_secret_manager_secret_version" "admin_password" {
 
 resource "google_secret_manager_secret_version" "fernet_key" {
   secret      = google_secret_manager_secret.fernet_key.id
-  secret_data = base64urlencode(random_password.fernet_key.result)
+  secret_data = base64encode(random_password.fernet_key.result)
 }
 
 
